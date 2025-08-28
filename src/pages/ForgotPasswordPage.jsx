@@ -34,7 +34,6 @@ export default function ForgotPasswordPage() {
         setError('');
         if (!email || !validateEmail(email)) {
             setError('Vui lòng nhập email hợp lệ');
-            setSent(false);
             return;
         }
 
@@ -43,37 +42,29 @@ export default function ForgotPasswordPage() {
             const res = await ForgotPassword(email); // service
             const payload = normalize(res);
 
-            // Debug (bỏ/comment khi production)
-            console.log('[ForgotPassword] response:', { status: res?.status, payload });
+            console.log('[ForgotPassword] response:', { status: res?.code });
 
-            // If HTTP status available and 2xx => success (policy: treat as success even if email doesn't exist)
-            const okHttp = res?.status >= 200 && res?.status < 300;
-            // Or backend might return payload.success or payload.code === 200 etc.
+            const okHttp = res?.code >= 200 && res?.code < 300;
+
             const okPayload = payload && (payload.success === true || payload.code === 200);
 
             if (okHttp || okPayload) {
-                // show success (SECURE: do not reveal whether email existed)
                 setSent(true);
                 setError('');
             } else {
-                // Not 2xx and no explicit ok flag — show friendly message or payload.message
                 const msg = payload?.message || 'Không thể gửi liên kết. Vui lòng thử lại.';
                 setError(msg);
-                setSent(false);
             }
         } catch (err) {
             console.error('[ForgotPassword] error:', err);
             const resp = err?.response;
             if (resp) {
-                // server returned an error status (4xx/5xx)
-                const msg = resp.data?.message || `Lỗi: ${resp.status}`;
+                const msg = resp.data?.message || `Lỗi: ${resp.code}`;
                 setError(msg);
             } else {
                 // network / CORS / no response
                 setError('Không thể kết nối tới server. Kiểm tra mạng hoặc cấu hình CORS.');
             }
-            // hide previous success if any
-            setSent(false);
         } finally {
             setLoading(false);
         }
@@ -81,13 +72,6 @@ export default function ForgotPasswordPage() {
 
     const onKeyDown = (e) => {
         if (e.key === 'Enter') handleSubmit();
-    };
-
-    // Clear success/error when user edits email
-    const handleEmailChange = (value) => {
-        setEmail(value);
-        if (sent) setSent(false);
-        if (error) setError('');
     };
 
     return (
@@ -101,7 +85,7 @@ export default function ForgotPasswordPage() {
                     <Input
                         label="Email"
                         value={email}
-                        onChange={(e) => handleEmailChange(e.target.value)}
+                        onChange={(e) => setEmail(e.target.value)}
                         onKeyDown={onKeyDown}
                         placeholder="Nhập email của bạn"
                         icon={<i className="fas fa-envelope text-gray-400"></i>}
@@ -129,8 +113,7 @@ export default function ForgotPasswordPage() {
                     )}
                 </Button>
 
-                {/* only show success when sent AND there's no error */}
-                {sent && !error && <SuccessNote email={email} />}
+                {sent && <SuccessNote email={email} />}
 
                 {/* Footer */}
                 <p className="mt-6 text-center text-gray-500">

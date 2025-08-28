@@ -3,7 +3,6 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { GetMyProfile } from "../service/api.auth.service";
 
-/* ---------- Small subcomponents ---------- */
 
 const Badge = ({ children }) => (
     <span className="inline-block px-3 py-1 text-xs font-semibold bg-gray-100 rounded-full">
@@ -63,7 +62,7 @@ export default function Profile() {
                 setProfile(mapToProfile(raw));
             }
         } catch (err) {
-            const status = err?.response?.status;
+            const status = err?.response.code;
             if (status === 401 || status === 403) {
                 // not authenticated -> redirect to login
                 navigate("/login");

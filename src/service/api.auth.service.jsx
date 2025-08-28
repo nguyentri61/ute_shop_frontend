@@ -1,4 +1,4 @@
-import axios from "./axios.admin.customize";
+import axios from "./axios.customize";
 
 
 const ForgotPassword = async (email) => {
