@@ -1,28 +1,41 @@
-import { useState } from 'react';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import FormError from '../components/FormError';
-import { useDispatch } from 'react-redux';
-import { loginStart, loginSuccess, loginFailure } from '../features/auth/authSlice';
-import { login } from '../api/authApi';
+import { useDispatch, useSelector } from 'react-redux';
+import { setEmail, setPassword, loginUser } from '../features/auth/loginSlice';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
     const dispatch = useDispatch();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+    const navigate = useNavigate();
+    const { email, password, loading, error, isAuthenticated } = useSelector((state) => state.login);
 
-    const handleLogin = async () => {
-        dispatch(loginStart());
-        try {
-            const res = await login(email, password);
-            dispatch(loginSuccess({ user: res.data.user, token: res.data.token }));
-        } catch (err) {
-            const msg = err.response?.data?.message || 'Login failed';
-            dispatch(loginFailure(msg));
-            setError(msg);
+    const handleSubmit = () => {
+        if (!email || !password) {
+            alert('Vui lòng nhập email và mật khẩu');
+            return;
         }
+        dispatch(loginUser({ email, password }));
     };
+
+    const onKeyDown = (e) => {
+        if (e.key === 'Enter') handleSubmit();
+    };
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/profile');
+        }
+    }, [isAuthenticated, navigate]);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            navigate('/login');
+        }
+    }, [navigate]);
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
@@ -34,9 +47,10 @@ export default function Login() {
                     <Input
                         label="Email"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => dispatch(setEmail(e.target.value))}
+                        onKeyDown={onKeyDown}
                         placeholder="Enter your email"
-                        icon={<i className="fas fa-envelope text-gray-400"></i>} // nếu dùng FontAwesome
+                        icon={<i className="fas fa-envelope text-gray-400"></i>}
                     />
                 </div>
 
@@ -46,7 +60,8 @@ export default function Login() {
                         label="Password"
                         type="password"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => dispatch(setPassword(e.target.value))}
+                        onKeyDown={onKeyDown}
                         placeholder="Enter your password"
                         icon={<i className="fas fa-lock text-gray-400"></i>}
                     />
@@ -57,10 +72,18 @@ export default function Login() {
 
                 {/* Button */}
                 <Button
-                    onClick={handleLogin}
-                    className="w-full py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-bold rounded-xl shadow-md hover:from-purple-500 hover:to-indigo-500 transition-all duration-300"
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    className="w-full py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-bold rounded-xl shadow-md hover:from-purple-500 hover:to-indigo-500 transition-all duration-300 disabled:opacity-60"
                 >
-                    Login
+                    {loading ? (
+                        <span className="inline-flex items-center gap-2">
+                            <span className="h-4 w-4 inline-block animate-spin rounded-full border-2 border-white/60 border-t-white"></span>
+                            Đang đăng nhập...
+                        </span>
+                    ) : (
+                        'Login'
+                    )}
                 </Button>
 
                 {/* Footer */}
@@ -73,6 +96,4 @@ export default function Login() {
             </div>
         </div>
     );
-
-
 }

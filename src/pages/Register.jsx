@@ -1,23 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import FormError from '../components/FormError';
-import { register } from '../api/authApi';
+import { setEmail, setPassword, registerUser } from '../features/auth/registerSlice';
+import { useNavigate } from 'react-router-dom';
 
 export default function Register() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirm, setConfirm] = useState('');
-    const [error, setError] = useState('');
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
 
-    const handleRegister = async () => {
-        if (password !== confirm) return setError("Passwords don't match");
-        try {
-            await register(email, password);
-            alert('Register successful! Please login.');
-        } catch (err) {
-            setError(err.response?.data?.message || 'Register failed');
+    const { email, password, loading, error, success, otpEmail } = useSelector((state) => state.register);
+    const [confirm, setConfirm] = useState('');
+    const [localError, setLocalError] = useState('');
+
+    useEffect(() => {
+        if (success && otpEmail) {
+            navigate('/verify-otp', { state: { email: otpEmail } });
         }
+    }, [success, otpEmail, navigate]);
+
+    const handleRegister = () => {
+        if (!email || !password || !confirm) {
+            setLocalError('Vui lòng điền đầy đủ thông tin');
+            return;
+        }
+        if (password !== confirm) {
+            setLocalError("Passwords don't match");
+            return;
+        }
+        setLocalError('');
+        dispatch(registerUser({ email, password }));
     };
 
     return (
@@ -30,9 +43,8 @@ export default function Register() {
                     <Input
                         label="Email"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => dispatch(setEmail(e.target.value))}
                         placeholder="Enter your email"
-                        icon={<i className="fas fa-envelope text-gray-400"></i>}
                     />
                 </div>
 
@@ -42,9 +54,8 @@ export default function Register() {
                         label="Password"
                         type="password"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => dispatch(setPassword(e.target.value))}
                         placeholder="Enter your password"
-                        icon={<i className="fas fa-lock text-gray-400"></i>}
                     />
                 </div>
 
@@ -56,30 +67,25 @@ export default function Register() {
                         value={confirm}
                         onChange={(e) => setConfirm(e.target.value)}
                         placeholder="Confirm your password"
-                        icon={<i className="fas fa-lock text-gray-400"></i>}
                     />
                 </div>
 
                 {/* Error message */}
-                {error && <FormError message={error} className="mb-4" />}
+                {(error || localError) && <FormError message={error || localError} className="mb-4" />}
 
                 {/* Button */}
                 <Button
                     onClick={handleRegister}
-                    className="w-full py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold rounded-xl shadow-md hover:from-purple-500 hover:to-pink-500 transition-all duration-300"
+                    disabled={loading}
+                    className="w-full py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl"
                 >
-                    Register
+                    {loading ? 'Đang đăng ký...' : 'Register'}
                 </Button>
 
-                {/* Footer */}
                 <p className="mt-6 text-center text-gray-500">
-                    Already have an account?{' '}
-                    <a href="/login" className="text-purple-600 hover:underline font-semibold">
-                        Login
-                    </a>
+                    Already have an account? <a href="/login" className="text-purple-600 hover:underline">Login</a>
                 </p>
             </div>
         </div>
     );
-
 }
