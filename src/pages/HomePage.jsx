@@ -1,5 +1,4 @@
 import React from "react";
-import Header from "../components/Header";
 import Banner from "../components/Banner";
 import Category from "../components/Category";
 import ProductCard from "../components/ProductCard";
@@ -12,7 +11,6 @@ import { products, newProducts, bestSellers, mostViewed, topDiscounts } from "..
 export default function Home() {
     return (
         <div className="bg-gray-100 min-h-screen">
-            <Header />
             <Banner />
             <Category />
             <div className="max-w-[1200px] mx-auto p-6">

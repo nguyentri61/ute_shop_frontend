@@ -25,17 +25,9 @@ export default function Login() {
 
     useEffect(() => {
         if (isAuthenticated) {
-            navigate('/profile');
+            navigate('/');
         }
     }, [isAuthenticated, navigate]);
-
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            navigate('/login');
-        }
-    }, [navigate]);
-
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
