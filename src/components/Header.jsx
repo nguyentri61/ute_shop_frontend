@@ -104,7 +104,7 @@ export default function Header() {
                                     className="flex items-center space-x-3 px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 transition-all duration-200 hover:shadow-md hover:scale-[1.02] hover:bg-gray-100 dark:hover:bg-gray-700"
                                 >
                                     <span className="font-medium text-gray-900 dark:text-white hidden sm:block">
-                                        {profile.name}
+                                        {profile.fullName ? profile.fullName : "Account"}
                                     </span>
                                     <div className="relative">
                                         <img

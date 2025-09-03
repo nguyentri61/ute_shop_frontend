@@ -46,13 +46,6 @@ function App() {
     <ErrorBoundary>
       <Router>
         <Routes>
-          {/* Auth routes without header */}
-          <Route element={<AuthLayout />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/verify-otp" element={<VerifyOTP />} />
-          </Route>
 
           {/* Main routes with header */}
           <Route element={<Layout />}>
@@ -62,6 +55,16 @@ function App() {
               <Route path="/profile" element={<Profile />} />
             </Route>
           </Route>
+
+          {/* Auth routes without header */}
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/verify-otp" element={<VerifyOTP />} />
+          </Route>
+
+
 
           {/* Catch all route for 404 errors - must be at the end */}
           <Route path="*" element={<ErrorPage />} />
