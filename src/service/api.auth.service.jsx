@@ -21,3 +21,11 @@ const GetMyProfile = () => {
   return axios.get(API);
 };
 export { Login, Register, VerifyOtp, ForgotPassword, GetMyProfile };
+
+// Users
+const UpdateProfile = (data) => {
+  const API = "/users/update";
+  return axios.put(API, data);
+}
+
+export { UpdateProfile };

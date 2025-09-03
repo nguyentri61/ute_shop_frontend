@@ -3,14 +3,18 @@ import loginReducer from './features/auth/loginSlice';
 import registerReducer from './features/auth/registerSlice';
 import otpReducer from './features/auth/otpSlice';
 import productReducer from './features/products/productSlice';
+import forgotPasswordReducer from './features/auth/forgotPasswordSlice';
 import categoryReducer from './features/products/categorySlice';
+import profileReducer from './features/auth/profileSlice';
 
 export const store = configureStore({
     reducer: {
         login: loginReducer,
         register: registerReducer,
-        otp: otpReducer,
         product: productReducer,
-        category: categoryReducer
+        category: categoryReducer,
+        otp: otpReducer,
+        forgotPassword: forgotPasswordReducer,
+        profile: profileReducer,
     },
 });

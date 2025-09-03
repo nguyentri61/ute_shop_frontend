@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import Header from "../components/Header";
 import Banner from "../components/Banner";
 import Category from "../components/Category";
 import ProductCard from "../components/ProductCard";
@@ -50,7 +49,6 @@ export default function Home() {
 
     return (
         <div className="bg-gray-100 min-h-screen">
-            <Header />
             <Banner />
 
             <Category categories={allCategories || []} />
