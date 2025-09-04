@@ -8,7 +8,7 @@ import Pagination from "../components/Pagination";
 import ProductSection from "../components/ProductSection";
 
 import {
-    fetchAllProducts,
+    fetchPaginatedProducts,
     fetchNewestProducts,
     fetchBestSellingProducts,
     fetchMostViewedProducts,
@@ -24,9 +24,9 @@ export default function Home() {
 
     const { all: allCategories, loading: loadingCate, error: errorCate } = useSelector((state) => state.category);
 
-
     const {
-        all,
+        paginated,
+        pagination,
         newest,
         bestSelling,
         mostViewed,
@@ -37,12 +37,16 @@ export default function Home() {
 
     useEffect(() => {
         dispatch(fetchAllCategories());
-        dispatch(fetchAllProducts());
+        dispatch(fetchPaginatedProducts({ page: 1, limit: 8 }));
         dispatch(fetchNewestProducts());
         dispatch(fetchBestSellingProducts());
         dispatch(fetchMostViewedProducts());
         dispatch(fetchTopDiscountProducts());
     }, [dispatch]);
+
+    const handlePageChange = (page) => {
+        dispatch(fetchPaginatedProducts({ page, limit: pagination.limit || 8 }));
+    };
 
     if (loading || loadingCate) return <p className="text-center mt-10">Đang tải dữ liệu...</p>;
     if (error || errorCate) return <p className="text-center mt-10 text-red-500">Lỗi: {error}</p>;
@@ -50,7 +54,6 @@ export default function Home() {
     return (
         <div className="bg-gray-100 min-h-screen">
             <Banner />
-
             <Category categories={allCategories || []} />
 
             <div className="max-w-[1200px] mx-auto p-6">
@@ -64,7 +67,7 @@ export default function Home() {
                 <div className="p-6 bg-gray-50 rounded-xl mt-6">
                     <h3 className="text-2xl font-bold mb-6 text-center">Featured Products</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        {all.map((product) => (
+                        {paginated.map((product) => (
                             <ProductCard key={product.id} product={product} />
                         ))}
                     </div>
@@ -73,9 +76,9 @@ export default function Home() {
 
             <div className="flex justify-center mt-8 mb-12">
                 <Pagination
-                    totalPages={10}
-                    currentPage={1}
-                    onPageChange={(page) => console.log("Selected page:", page)}
+                    totalPages={pagination.totalPages || 1}
+                    currentPage={pagination.page || 1}
+                    onPageChange={handlePageChange}
                 />
             </div>
 

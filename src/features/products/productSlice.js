@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import {
     AllProducts,
+    PaginatedProducts,
     NewestProducts,
     BestSellingProducts,
     MostViewedProducts,
@@ -10,6 +11,11 @@ import {
 // thunk gọi API
 export const fetchAllProducts = createAsyncThunk("product/fetchAll", async () => {
     const res = await AllProducts();
+    return res.data;
+});
+
+export const fetchPaginatedProducts = createAsyncThunk("product/fetchPaginatedProducts", async ({ page, limit }) => {
+    const res = await PaginatedProducts({ page, limit });
     return res.data;
 });
 
@@ -37,6 +43,8 @@ const productSlice = createSlice({
     name: "product",
     initialState: {
         all: [],
+        paginated: [],
+        pagination: { page: 1, limit: 10, total: 0, totalPages: 1 },
         newest: [],
         bestSelling: [],
         mostViewed: [],
@@ -47,13 +55,16 @@ const productSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
-            // All
-            .addCase(fetchAllProducts.pending, (state) => { state.loading = true; })
-            .addCase(fetchAllProducts.fulfilled, (state, action) => {
+            // Paginated
+            .addCase(fetchPaginatedProducts.pending, (state) => { state.loading = true; })
+            .addCase(fetchPaginatedProducts.fulfilled, (state, action) => {
                 state.loading = false;
-                state.all = action.payload;
+
+                console.log("Payload:", action.payload);
+                state.paginated = action.payload.data;
+                state.pagination = action.payload.pagination;
             })
-            .addCase(fetchAllProducts.rejected, (state, action) => {
+            .addCase(fetchPaginatedProducts.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message;
             })

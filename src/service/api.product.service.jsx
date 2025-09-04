@@ -6,6 +6,11 @@ const AllProducts = async () => {
     return axios.get(API);
 };
 
+const PaginatedProducts = async ({ page, limit }) => {
+    const API = `/products/paginated-products?page=${page}&limit=${limit}`;
+    return axios.get(API);
+};
+
 // Lấy 8 sản phẩm mới nhất
 const NewestProducts = async () => {
     const API = "/products/newest";
@@ -32,6 +37,7 @@ const TopDiscountProducts = async () => {
 
 export {
     AllProducts,
+    PaginatedProducts,
     NewestProducts,
     BestSellingProducts,
     MostViewedProducts,
