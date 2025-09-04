@@ -10,6 +10,7 @@ import Register from "./pages/Register";
 import HomePage from "./pages/HomePage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import Profile from "./pages/Profile";
+import MyOrdersPage from "./pages/MyOrdersPage";
 import VerifyOTP from "./pages/VerifyOTP";
 import Header from "./components/Header";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -62,6 +63,7 @@ function App() {
             {/* Protected routes that require authentication */}
             <Route element={<ProtectedRoute />}>
               <Route path="/profile" element={<Profile />} />
+              <Route path="/orders" element={<MyOrdersPage />} />
             </Route>
           </Route>
 
