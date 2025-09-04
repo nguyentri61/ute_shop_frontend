@@ -1,17 +1,24 @@
-import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import HomePage from './pages/HomePage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import Profile from './pages/Profile';
-import VerifyOTP from './pages/VerifyOTP';
-import Header from './components/Header';
-import ErrorBoundary from './components/ErrorBoundary';
-import ErrorPage from './pages/ErrorPage';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Outlet,
+  Navigate,
+} from "react-router-dom";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import HomePage from "./pages/HomePage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import Profile from "./pages/Profile";
+import VerifyOTP from "./pages/VerifyOTP";
+import Header from "./components/Header";
+import ErrorBoundary from "./components/ErrorBoundary";
+import ErrorPage from "./pages/ErrorPage";
+import ProductDetailPage from "./pages/ProductDetailPage";
 
 // Protected Route component
 function ProtectedRoute() {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
 
   if (!token) {
     return <Navigate to="/login" replace />;
@@ -25,7 +32,9 @@ function Layout() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
-      <main className="pt-16"> {/* Add top padding to account for fixed header */}
+      <main className="pt-16">
+        {" "}
+        {/* Add top padding to account for fixed header */}
         <Outlet />
       </main>
     </div>
@@ -46,10 +55,10 @@ function App() {
     <ErrorBoundary>
       <Router>
         <Routes>
-
           {/* Main routes with header */}
           <Route element={<Layout />}>
             <Route path="/" element={<HomePage />} />
+            <Route path="/products/:id" element={<ProductDetailPage />} />
             {/* Protected routes that require authentication */}
             <Route element={<ProtectedRoute />}>
               <Route path="/profile" element={<Profile />} />
@@ -63,8 +72,6 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/verify-otp" element={<VerifyOTP />} />
           </Route>
-
-
 
           {/* Catch all route for 404 errors - must be at the end */}
           <Route path="*" element={<ErrorPage />} />

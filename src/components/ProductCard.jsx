@@ -1,9 +1,11 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function ProductCard({ product }) {
+  const navigate = useNavigate();
   if (!product) return null;
-
-  const { name, description, price, discountPrice, createdAt, images } = product;
+  const { name, description, price, discountPrice, createdAt, images } =
+    product;
 
   // Hình sản phẩm
   const imageUrl = images?.[0]?.url || "/placeholder.png";
@@ -13,9 +15,14 @@ export default function ProductCard({ product }) {
 
   // Badge SALE nếu có discountPrice
   const sale = discountPrice && discountPrice < price;
-
+  const handleClick = () => {
+    navigate(`/products/${product.id}`);
+  };
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transform hover:-translate-y-2 hover:scale-105 transition-all duration-300 cursor-pointer flex flex-col h-full w-full min-w-[16rem]">
+    <div
+      onClick={handleClick}
+      className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transform hover:-translate-y-2 hover:scale-105 transition-all duration-300 cursor-pointer flex flex-col h-full w-full min-w-[16rem]"
+    >
       {/* Hình sản phẩm */}
       <div className="relative">
         <img src={imageUrl} alt={name} className="w-full h-48 object-cover" />
@@ -34,9 +41,13 @@ export default function ProductCard({ product }) {
       {/* Nội dung */}
       <div className="p-4 flex flex-col flex-1 justify-between">
         <div>
-          <h4 className="text-lg font-semibold text-gray-800 mb-1 line-clamp-2">{name}</h4>
+          <h4 className="text-lg font-semibold text-gray-800 mb-1 line-clamp-2">
+            {name}
+          </h4>
           {description && (
-            <p className="text-gray-600 text-sm mb-3 line-clamp-2">{description}</p>
+            <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+              {description}
+            </p>
           )}
         </div>
 

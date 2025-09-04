@@ -8,7 +8,7 @@ export const forgotPasswordUser = createAsyncThunk(
         try {
             const res = await ForgotPassword(email);
 
-            if (res?.code === 200 || res?.success === true) {
+            if (res?.status === 200 || res?.success === true) {
                 return res.data ?? res; // server trả về { message: "...", success: true }
             } else {
                 return rejectWithValue(res?.data?.message || "Gửi email thất bại");

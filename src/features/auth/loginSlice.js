@@ -1,37 +1,37 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { Login } from '../../service/api.auth.service';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { Login } from "../../service/api.auth.service";
 
 // thunk async
 export const loginUser = createAsyncThunk(
-  'auth/login',
+  "auth/login",
   async ({ email, password }, { rejectWithValue }) => {
     try {
       const res = await Login(email, password);
 
-      if (res?.code === 200) {
+      if (res?.status === 200) {
         // Trả về dữ liệu cần thiết cho Redux state
         return res.data; // { accessToken: "..." }
       } else {
-        return rejectWithValue(res?.data?.message || 'Đăng nhập thất bại');
+        return rejectWithValue(res?.data?.message || "Đăng nhập thất bại");
       }
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
         err?.message ||
-        'Không thể kết nối tới server. Kiểm tra mạng hoặc cấu hình CORS.';
+        "Không thể kết nối tới server. Kiểm tra mạng hoặc cấu hình CORS.";
       return rejectWithValue(msg);
     }
   }
 );
 
 const loginSlice = createSlice({
-  name: 'login',
+  name: "login",
   initialState: {
-    email: '',
-    password: '',
+    email: "",
+    password: "",
     user: null,
     token: null,
-    error: '',
+    error: "",
     loading: false,
     isAuthenticated: false,
   },
@@ -52,23 +52,23 @@ const loginSlice = createSlice({
     builder
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
-        state.error = '';
+        state.error = "";
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.error = '';
+        state.error = "";
         state.isAuthenticated = true;
 
         state.token = action.payload?.accessToken || null;
         state.user = action.payload?.user || null;
 
         if (state.token) {
-          localStorage.setItem('token', state.token);
+          localStorage.setItem("token", state.token);
         }
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Đăng nhập thất bại';
+        state.error = action.payload || "Đăng nhập thất bại";
         state.isAuthenticated = false;
       });
   },
