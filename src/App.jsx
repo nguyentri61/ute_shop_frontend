@@ -16,6 +16,7 @@ import Header from "./components/Header";
 import ErrorBoundary from "./components/ErrorBoundary";
 import ErrorPage from "./pages/ErrorPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
+import CheckOutPage from "./pages/CheckOutPage";
 
 // Protected Route component
 function ProtectedRoute() {
@@ -60,10 +61,13 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/products/:id" element={<ProductDetailPage />} />
+
+
             {/* Protected routes that require authentication */}
             <Route element={<ProtectedRoute />}>
               <Route path="/profile" element={<Profile />} />
               <Route path="/orders" element={<MyOrdersPage />} />
+              <Route path="/checkout" element={<CheckOutPage />} />
             </Route>
           </Route>
 

@@ -1,12 +1,6 @@
 // src/services/api.order.service.jsx
 import axios from "./axios.customize";
 
-/**
- * API service cho orders
- * Giữ cùng phong cách với AllCategories: trả về axios promise
- * Component gọi sẽ xử lý res.data (có thể là {status,message,data} hoặc mảng trực tiếp)
- */
-
 const getMyOrders = () => {
     const API = "/orders/my-orders"; // chỉnh nếu backend của bạn khác
     return axios.get(API);
@@ -36,10 +30,6 @@ const updateOrderStatus = (orderId, status) => {
     return axios.patch(API, { status });
 };
 
-/**
- * Optional: helper để trả về trực tiếp mảng orders (unwrap response)
- * Nếu bạn thích component nhận luôn `data` thay vì axios response, dùng unwrapGetMyOrders
- */
 const unwrapGetMyOrders = async () => {
     const res = await getMyOrders();
     // res.data có thể là { status, message, data } hoặc mảng

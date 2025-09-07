@@ -147,6 +147,16 @@ export default function Header() {
                                             </svg>
                                             Đơn hàng của tôi
                                         </Link>
+                                        <Link
+                                            to="/checkout"
+                                            onClick={() => setOpenMenu(false)}
+                                            className="flex items-center w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-150"
+                                        >
+                                            <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                            </svg>
+                                            Test Thanh toán
+                                        </Link>
                                     </div>
                                     <div className="py-2 border-t border-gray-100 dark:border-gray-700">
                                         <button

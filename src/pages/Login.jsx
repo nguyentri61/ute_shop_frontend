@@ -34,10 +34,11 @@ export default function Login() {
             <div className="max-w-md w-full bg-white p-10 rounded-2xl shadow-2xl transform hover:scale-105 transition-transform duration-300">
                 <h1 className="text-3xl font-extrabold mb-8 text-center text-gray-800">Welcome Back!</h1>
 
-                {/* Email */}
+
                 <div className="mb-5">
                     <Input
                         label="Email"
+                        name="email"
                         value={email}
                         onChange={(e) => dispatch(setEmail(e.target.value))}
                         onKeyDown={onKeyDown}
@@ -46,11 +47,11 @@ export default function Login() {
                     />
                 </div>
 
-                {/* Password */}
                 <div className="mb-5">
                     <Input
                         label="Password"
                         type="password"
+                        name="password"
                         value={password}
                         onChange={(e) => dispatch(setPassword(e.target.value))}
                         onKeyDown={onKeyDown}
@@ -58,6 +59,7 @@ export default function Login() {
                         icon={<i className="fas fa-lock text-gray-400"></i>}
                     />
                 </div>
+
 
                 {/* Error message */}
                 {error && <FormError message={error} className="mb-4" />}

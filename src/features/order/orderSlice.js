@@ -69,6 +69,18 @@ export const cancelOrder = createAsyncThunk(
     }
 );
 
+export const createOrderCOD = createAsyncThunk(
+    "orders/createOrderCOD",
+    async (orderData, { rejectWithValue }) => {
+        try {
+            const res = await orderApi.createOrder(orderData);
+            return res.data;
+        } catch (err) {
+            return rejectWithValue(err.response?.data || "Có lỗi xảy ra");
+        }
+    }
+);
+
 const ordersSlice = createSlice({
     name: "orders",
     initialState: {
@@ -173,6 +185,18 @@ const ordersSlice = createSlice({
             .addCase(cancelOrder.rejected, (state, action) => {
                 state.cancelling = false;
                 state.cancelError = action.payload || "Không thể huỷ đơn hàng";
+            })
+            .addCase(createOrderCOD.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(createOrderCOD.fulfilled, (state, action) => {
+                state.loading = false;
+                state.order = action.payload;
+            })
+            .addCase(createOrderCOD.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
             });
     },
 });
