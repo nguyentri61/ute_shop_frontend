@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { message } from "antd";
 import OrderList from "../components/OrderList";
 import Input from "../components/Input";
 import DropdownInput from "../components/DropdownInput";
 import { fetchPreCheckout } from "../features/order/cartSlice";
+import { createOrderCOD } from "../features/order/orderSlice";
 
 const CheckoutCOD = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     const {
         items: cartItems = [],
@@ -31,9 +35,7 @@ const CheckoutCOD = () => {
 
     // Dữ liệu cứng cartItemIds
     const cartItemIds = React.useMemo(() => [
-        "d3e767bc-8bcf-11f0-8719-02501ad7019e",
-        "d3e793e0-8bcf-11f0-8719-02501ad7019e",
-        "d3e798e3-8bcf-11f0-8719-02501ad7019e",
+        "9e14bd8e-8cc8-11f0-8719-02501ad7019e",
     ], []);
 
     useEffect(() => {
@@ -42,7 +44,7 @@ const CheckoutCOD = () => {
             shippingVoucher: form.shippingVoucher,
             productVoucher: form.productVoucher,
         }));
-    }, [dispatch, cartItemIds]);
+    }, [dispatch]);
 
 
     if (loading) return <div>Đang tải giỏ hàng...</div>;
@@ -52,6 +54,7 @@ const CheckoutCOD = () => {
         setForm({ ...form, [e.target.name]: e.target.value });
 
     const handleVoucherBlur = () => {
+        console.log("🔎 Blur voucher:", form.shippingVoucher, form.productVoucher);
         dispatch(fetchPreCheckout({
             cartItemIds,
             shippingVoucher: form.shippingVoucher,
@@ -61,10 +64,21 @@ const CheckoutCOD = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("Form data:", form);
-        console.log("Products:", cartItems);
-        console.log("Total:", total);
-        alert("Đặt hàng thành công (demo UI)");
+        dispatch(createOrderCOD({
+            address: form.address,
+            phone: form.phone,
+            cartItemIds,
+            shippingVoucher: form.shippingVoucher,
+            productVoucher: form.productVoucher,
+        }))
+            .unwrap()
+            .then(() => {
+                alert("Đặt hàng thành công!");
+                navigate("/");
+            })
+            .catch((err) => {
+                message.error(err || "Có lỗi xảy ra, vui lòng thử lại!");
+            });
     };
 
     const mappedCartItems = cartItems.map(item => ({
@@ -77,6 +91,7 @@ const CheckoutCOD = () => {
         variant: item.variant // giữ nguyên variant nếu muốn dùng
     }));
     console.log("cartItems", cartItems);
+    console.log("shipping", shippingDiscount);
     console.log("mappedCartItems:", mappedCartItems);
 
 

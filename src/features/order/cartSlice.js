@@ -8,7 +8,7 @@ export const fetchPreCheckout = createAsyncThunk(
     async ({ cartItemIds, shippingVoucher, productVoucher }, { rejectWithValue }) => {
         try {
             const res = await PreCheckout(cartItemIds, shippingVoucher, productVoucher);
-            console.log(res.data);
+            console.log("PreCheckout", res);
             return res.data;
         } catch (err) {
             console.log(err.message);

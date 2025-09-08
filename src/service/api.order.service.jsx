@@ -11,9 +11,9 @@ const getOrderById = (orderId) => {
     return axios.get(API);
 };
 
-const createOrder = (payload) => {
-    const API = "/orders";
-    return axios.post(API, payload);
+const createOrderCODService = (address, phone, cartItemIds, shippingVoucher = null, productVoucher = null) => {
+    const API = "/orders/checkout-cod";
+    return axios.post(API, { address, phone, cartItemIds, shippingVoucher, productVoucher });
 };
 
 const cancelOrder = (orderId) => {
@@ -39,7 +39,7 @@ const unwrapGetMyOrders = async () => {
 export {
     getMyOrders,
     getOrderById,
-    createOrder,
+    createOrderCODService,
     cancelOrder,
     updateOrderStatus,
     unwrapGetMyOrders,

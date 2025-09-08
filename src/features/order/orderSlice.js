@@ -4,7 +4,8 @@ import {
     getMyOrders,
     getOrderById,
     cancelOrder as apiCancelOrder,
-} from "../../services/api.order.service";
+    createOrderCODService
+} from "../../service/api.order.service";
 
 // Thunk: lấy danh sách đơn hàng của user
 export const fetchMyOrders = createAsyncThunk(
@@ -71,12 +72,13 @@ export const cancelOrder = createAsyncThunk(
 
 export const createOrderCOD = createAsyncThunk(
     "orders/createOrderCOD",
-    async (orderData, { rejectWithValue }) => {
+    async ({ address, phone, cartItemIds, shippingVoucher, productVoucher }, { rejectWithValue }) => {
         try {
-            const res = await orderApi.createOrder(orderData);
+            const res = await createOrderCODService(address, phone, cartItemIds, shippingVoucher, productVoucher);
+            console.log(res.data);
             return res.data;
         } catch (err) {
-            return rejectWithValue(err.response?.data || "Có lỗi xảy ra");
+            return rejectWithValue(err.response?.data?.message || err.message);
         }
     }
 );
