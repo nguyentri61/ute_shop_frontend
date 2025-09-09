@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import {
-    PreCheckout
+    PreCheckout,
+    UpdateQuantity
 } from "../../service/api.cart.service";
 
 export const fetchPreCheckout = createAsyncThunk(
@@ -17,6 +18,20 @@ export const fetchPreCheckout = createAsyncThunk(
     }
 );
 
+export const updateQuantity = createAsyncThunk(
+    "carts/update",
+    async ({ cartItemId, quantity }, { rejectWithValue }) => {
+        try {
+            const res = await UpdateQuantity(cartItemId, quantity);
+            return res.data;
+        }
+        catch (err) {
+            console.log(err.message);
+            return rejectWithValue(err.response?.data?.message || err.message);
+        }
+    }
+)
+
 const cartSlice = createSlice({
     name: "cartItems",
     initialState: {
@@ -29,7 +44,8 @@ const cartSlice = createSlice({
         loading: false,
         error: null,
     },
-    reducers: {},
+    reducers: {
+    },
     extraReducers: (builder) => {
         builder
             // Pending
@@ -56,3 +72,4 @@ const cartSlice = createSlice({
 });
 
 export default cartSlice.reducer;
+export const { increaseQty, decreaseQty } = cartSlice.actions;

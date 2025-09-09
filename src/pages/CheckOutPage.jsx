@@ -5,7 +5,7 @@ import { message } from "antd";
 import OrderList from "../components/OrderList";
 import Input from "../components/Input";
 import DropdownInput from "../components/DropdownInput";
-import { fetchPreCheckout } from "../features/order/cartSlice";
+import { fetchPreCheckout, updateQuantity } from "../features/order/cartSlice";
 import { createOrderCOD } from "../features/order/orderSlice";
 
 const CheckoutCOD = () => {
@@ -35,7 +35,7 @@ const CheckoutCOD = () => {
 
     // Dữ liệu cứng cartItemIds
     const cartItemIds = React.useMemo(() => [
-        "9e14bd8e-8cc8-11f0-8719-02501ad7019e",
+        "9e14d28a-8cc8-11f0-8719-02501ad7019e",
     ], []);
 
     useEffect(() => {
@@ -47,7 +47,7 @@ const CheckoutCOD = () => {
     }, [dispatch]);
 
 
-    if (loading) return <div>Đang tải giỏ hàng...</div>;
+    { loading && <p className="text-gray-500">Đang cập nhật...</p> }
     if (error) return <div>Lỗi: {error}</div>;
 
     const handleChange = (e) =>
@@ -81,25 +81,61 @@ const CheckoutCOD = () => {
             });
     };
 
+    // Hàm tăng số lượng
+    const handleIncrease = (id) => {
+        const item = cartItems.find(i => i.id === id);
+        if (!item) return;
+
+        dispatch(updateQuantity({ cartItemId: id, quantity: item.quantity + 1 }))
+            .unwrap()
+            .then(() => {
+                dispatch(fetchPreCheckout({
+                    cartItemIds: cartItems.map(i => i.id),
+                    shippingVoucher: form.shippingVoucher,
+                    productVoucher: form.productVoucher,
+                }));
+            })
+            .catch(err => message.error(err || "Có lỗi xảy ra khi tăng số lượng!"));
+    };
+
+    // Hàm giảm số lượng
+    const handleDecrease = (id) => {
+        const item = cartItems.find(i => i.id === id);
+        if (!item) return;
+
+        const newQty = item.quantity - 1;
+        dispatch(updateQuantity({ cartItemId: id, quantity: newQty }))
+            .unwrap()
+            .then(() => {
+                dispatch(fetchPreCheckout({
+                    cartItemIds: cartItems.map(i => i.id),
+                    shippingVoucher: form.shippingVoucher,
+                    productVoucher: form.productVoucher,
+                }));
+            })
+            .catch(err => message.error(err || "Có lỗi xảy ra khi giảm số lượng!"));
+    };
+
     const mappedCartItems = cartItems.map(item => ({
         id: item.id,
-        name: item.variant.product.name, // nếu có tên thật thì dùng
+        name: item.variant.product.name,
         price: item.variant.discountPrice ?? item.variant.price,
         qty: item.quantity,
-        image: item.variant.image ?? "", // nếu chưa có, để trống hoặc default image
+        image: item.variant.image ?? "",
         description: `Size: ${item.variant.size || "-"}, Color: ${item.variant.color || "-"}`,
-        variant: item.variant // giữ nguyên variant nếu muốn dùng
+        variant: item.variant
     }));
     console.log("cartItems", cartItems);
     console.log("shipping", shippingDiscount);
     console.log("mappedCartItems:", mappedCartItems);
 
-
     return (
         <div className="container mx-auto p-6 grid grid-cols-3 gap-6">
 
             <div className="col-span-2">
-                <OrderList products={mappedCartItems} />
+                <OrderList products={mappedCartItems}
+                    onIncrease={handleIncrease}
+                    onDecrease={handleDecrease} />
             </div>
 
             <form onSubmit={handleSubmit} className="col-span-1 bg-white p-4 rounded-2xl shadow flex flex-col gap-4 h-fit">

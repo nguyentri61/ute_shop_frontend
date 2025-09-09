@@ -1,7 +1,7 @@
 import React from "react";
 import OrderItem from "./OrderItem";
 
-const OrderList = ({ products, onQtyChange }) => {
+const OrderList = ({ products, onIncrease, onDecrease }) => {
     return (
         <div className="bg-white p-4 rounded-2xl shadow h-[70vh] flex flex-col">
             <h2 className="text-xl font-bold mb-4">Sản phẩm</h2>
@@ -16,7 +16,8 @@ const OrderList = ({ products, onQtyChange }) => {
                         qty={p.qty}
                         image={p.image}
                         description={p.description}
-                        onQtyChange={onQtyChange}
+                        onIncrease={onIncrease}
+                        onDecrease={onDecrease}
                     />
 
                 ))}

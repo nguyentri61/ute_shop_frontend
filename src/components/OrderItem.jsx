@@ -1,7 +1,7 @@
 import React from "react";
 import QuantitySelector from "./QuantitySelector";
 
-const OrderItem = ({ name, qty, price, image, description, onIncrease, onDecrease }) => {
+const OrderItem = ({ id, name, qty, price, image, description, onIncrease, onDecrease }) => {
     return (
         <div className="flex items-center gap-4 border-b pb-3">
             {/* Ảnh sản phẩm */}
@@ -21,8 +21,8 @@ const OrderItem = ({ name, qty, price, image, description, onIncrease, onDecreas
             <div className="w-32 flex justify-center">
                 <QuantitySelector
                     value={qty}
-                    onIncrease={onIncrease}
-                    onDecrease={onDecrease}
+                    onIncrease={() => onIncrease(id)}
+                    onDecrease={() => onDecrease(id)}
                 />
             </div>
 

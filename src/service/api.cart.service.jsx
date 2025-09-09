@@ -5,4 +5,9 @@ const PreCheckout = async (cartItemIds, shippingVoucher = null, productVoucher =
     return axios.post(API, { cartItemIds, shippingVoucher, productVoucher });
 }
 
-export { PreCheckout }
+const UpdateQuantity = async (cartItemId, quantity) => {
+    const API = "/carts/update";
+    return axios.put(API, { cartItemId, quantity });
+}
+
+export { PreCheckout, UpdateQuantity }
