@@ -138,6 +138,16 @@ export default function Header() {
                                             Hồ sơ cá nhân
                                         </Link>
                                         <Link
+                                            to="/cart"
+                                            onClick={() => setOpenMenu(false)}
+                                            className="flex items-center w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-150"
+                                        >
+                                            <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9h14l-2-9M10 21a1 1 0 100-2 1 1 0 000 2zm6 0a1 1 0 100-2 1 1 0 000 2z" />
+                                            </svg>
+                                            Giỏ hàng
+                                        </Link>
+                                        <Link
                                             to="/orders"
                                             onClick={() => setOpenMenu(false)}
                                             className="flex items-center w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-150"
