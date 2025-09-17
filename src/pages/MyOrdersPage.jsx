@@ -4,7 +4,6 @@ import {
   cancelOrder as apiCancelOrder,
 } from "../service/api.order.service";
 import OrderCard from "../components/orders/OrderCard";
-import toast from "react-hot-toast";
 import { showError } from "../utils/toast";
 
 export default function MyOrdersPage() {
