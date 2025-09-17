@@ -17,6 +17,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import ErrorPage from "./pages/ErrorPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import CheckOutPage from "./pages/CheckOutPage";
+import { Toaster } from "react-hot-toast";
 
 // Protected Route component
 function ProtectedRoute() {
@@ -62,7 +63,6 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/products/:id" element={<ProductDetailPage />} />
 
-
             {/* Protected routes that require authentication */}
             <Route element={<ProtectedRoute />}>
               <Route path="/profile" element={<Profile />} />
@@ -82,6 +82,16 @@ function App() {
           {/* Catch all route for 404 errors - must be at the end */}
           <Route path="*" element={<ErrorPage />} />
         </Routes>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: "#333",
+              color: "#fff",
+            },
+          }}
+        />
       </Router>
     </ErrorBoundary>
   );
