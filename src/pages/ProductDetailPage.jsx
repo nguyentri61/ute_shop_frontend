@@ -4,13 +4,18 @@ import { useEffect, useState } from "react";
 import { ProductDetail } from "../service/api.product.service";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
-import "swiper/css";
+import { useDispatch } from "react-redux";
+import { addToCart, fetchCart } from "../features/order/cartSlice";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import toast from "react-hot-toast";
 
 export default function ProductDetailPage() {
+  const dispatch = useDispatch();
   const { id } = useParams();
   const [product, setProduct] = useState(null);
+  const [selectedVariant, setSelectedVariant] = useState(null);
+  const [selectedColor, setSelectedColor] = useState(null);
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
@@ -19,6 +24,12 @@ export default function ProductDetailPage() {
       try {
         const res = await ProductDetail(id);
         setProduct(res.data);
+
+        if (res.data.variants && res.data.variants.length > 0) {
+          // chọn mặc định variant đầu tiên
+          setSelectedVariant(res.data.variants[0]);
+          setSelectedColor(res.data.variants[0].color);
+        }
       } catch (err) {
         console.error(err);
       }
@@ -26,7 +37,7 @@ export default function ProductDetailPage() {
     fetchProduct();
   }, [id]);
 
-  if (!product)
+  if (!product || !selectedVariant)
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-indigo-50 to-white">
         <span className="text-xl text-indigo-600 font-semibold animate-pulse">
@@ -35,8 +46,14 @@ export default function ProductDetailPage() {
       </div>
     );
 
-  const { name, description, price, discountPrice, stock, category, images } =
-    product;
+  const { name, description, category, images, variants } = product;
+  const { color, size, price, discountPrice, stock } = selectedVariant;
+
+  // Lấy danh sách màu duy nhất
+  const uniqueColors = [...new Set(variants.map((v) => v.color))];
+
+  // Lọc size theo màu đã chọn
+  const sizesByColor = variants.filter((v) => v.color === selectedColor);
 
   const handleIncrease = () => {
     if (quantity < stock) setQuantity(quantity + 1);
@@ -45,8 +62,20 @@ export default function ProductDetailPage() {
     if (quantity > 1) setQuantity(quantity - 1);
   };
   const handleAddToCart = () => {
-    alert(`Added ${quantity} "${name}" to cart`);
+    if (!selectedVariant) return;
+
+    dispatch(addToCart({ variantId: selectedVariant.id, quantity }))
+      .unwrap()
+      .then(() => {
+        dispatch(fetchCart());
+        toast.success("Đã thêm vào giỏ hàng!");
+      })
+      .catch((err) => {
+        toast.error("Lỗi khi thêm giỏ hàng: " + (err?.message || err));
+      });
   };
+
+
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-indigo-50 to-white py-6 px-2 sm:px-6">
@@ -96,6 +125,52 @@ export default function ProductDetailPage() {
             {description}
           </p>
 
+          {/* Chọn màu */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Màu sắc:
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {uniqueColors.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => {
+                    setSelectedColor(c);
+                    const firstSize = variants.find((v) => v.color === c);
+                    setSelectedVariant(firstSize);
+                  }}
+                  className={`px-3 py-1 rounded-lg border ${selectedColor === c
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Chọn size */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Kích thước:
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {sizesByColor.map((v) => (
+                <button
+                  key={v.id + "-size"}
+                  onClick={() => setSelectedVariant(v)}
+                  className={`px-3 py-1 rounded-lg border ${selectedVariant.id === v.id
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                >
+                  {v.size}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Giá */}
           <div className="mb-4 sm:mb-6 flex items-center gap-4">
             {discountPrice ? (
@@ -116,8 +191,8 @@ export default function ProductDetailPage() {
 
           {/* Tồn kho */}
           <p className="mb-4 sm:mb-6 text-gray-600 text-sm sm:text-base">
-            <span className="font-medium text-indigo-700">{stock}</span> sản
-            phẩm còn lại
+            <span className="font-medium text-indigo-700">{stock}</span> sản phẩm
+            còn lại
           </p>
 
           {/* Selector số lượng */}
