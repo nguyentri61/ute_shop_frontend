@@ -20,7 +20,13 @@ const GetMyProfile = () => {
   const API = "/auth/my-profile";
   return axios.get(API);
 };
-export { Login, Register, VerifyOtp, ForgotPassword, GetMyProfile };
+
+const GetCurrentUser = () => {
+  const API = "/users/me";
+  return axios.get(API);
+};
+
+export { Login, Register, VerifyOtp, ForgotPassword, GetMyProfile, GetCurrentUser };
 
 // Users
 const UpdateProfile = (data) => {

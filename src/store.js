@@ -7,6 +7,7 @@ import forgotPasswordReducer from './features/auth/forgotPasswordSlice';
 import categoryReducer from './features/products/categorySlice';
 import profileReducer from './features/auth/profileSlice';
 import cartReducer from './features/order/cartSlice';
+import adminOrderReducer from './features/admin/adminOrderSlice';
 
 export const store = configureStore({
     reducer: {
@@ -17,6 +18,7 @@ export const store = configureStore({
         otp: otpReducer,
         forgotPassword: forgotPasswordReducer,
         profile: profileReducer,
-        cart: cartReducer
+        cart: cartReducer,
+        adminOrder: adminOrderReducer
     },
 });
