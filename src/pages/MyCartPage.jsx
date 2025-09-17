@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { fetchCart, updateQuantity, removeFromCart } from "../features/order/cartSlice";
+import { toggleSelectItem, selectAllItems, clearSelection, setSelectedCartItems } from "../features/order/cartSlice"
 
 /** Utils */
 const formatCurrency = (amount) =>
@@ -81,7 +82,7 @@ const CartItemSkeleton = () => (
 export default function MyCartPage() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { items = [], loading = false, error = null } = useSelector((state) => state.cart);
+    const { items = [], selectedCartItemIds = [], loading = false, error = null } = useSelector((state) => state.cart);
     const [updatingItemId, setUpdatingItemId] = useState(null);
 
     useEffect(() => {
@@ -89,11 +90,22 @@ export default function MyCartPage() {
     }, [dispatch]);
 
     const subtotal = useMemo(
-        () => items.reduce((sum, it) => sum + ((it.variant?.discountPrice ?? it.variant?.price ?? 0) * it.quantity), 0),
-        [items]
+        () =>
+            items
+                .filter((it) => selectedCartItemIds.includes(it.id))
+                .reduce(
+                    (sum, it) =>
+                        sum + ((it.variant?.discountPrice ?? it.variant?.price ?? 0) * it.quantity),
+                    0
+                ),
+        [items, selectedCartItemIds]
     );
 
-    const totalQty = useMemo(() => items.reduce((s, it) => s + it.quantity, 0), [items]);
+    const totalQty = useMemo(
+        () => items.filter((it) => selectedCartItemIds.includes(it.id)).reduce((s, it) => s + it.quantity, 0),
+        [items, selectedCartItemIds]
+    );
+
 
     const freeShipThreshold = 500000; // ví dụ
     const remainingForFreeShip = Math.max(0, freeShipThreshold - subtotal);
@@ -191,7 +203,20 @@ export default function MyCartPage() {
                                     </Button>
                                 </div>
                             ) : (
+
                                 <ul className="divide-y divide-slate-100">
+                                    <div className="flex items-center mb-4">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedCartItemIds.length === items.length && items.length > 0}
+                                            onChange={(e) => {
+                                                if (e.target.checked) dispatch(selectAllItems());
+                                                else dispatch(clearSelection());
+                                            }}
+                                            className="h-5 w-5 accent-indigo-600 mr-2"
+                                        />
+                                        <span className="text-sm text-slate-700">Chọn tất cả</span>
+                                    </div>
                                     {items.map((it) => {
                                         const product = it.variant?.product || {};
                                         const basePrice = it.variant?.price ?? 0;
@@ -199,8 +224,17 @@ export default function MyCartPage() {
                                         const hasDiscount = it.variant?.discountPrice && it.variant.discountPrice < basePrice;
 
                                         return (
+
                                             <li key={it.id} className="py-5 first:pt-0 last:pb-0">
-                                                <div className="grid grid-cols-[96px_1fr_auto] items-center gap-4">
+                                                <div className="grid grid-cols-[24px_96px_1fr_auto] items-center gap-4">
+                                                    {/* checkbox chọn sản phẩm */}
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedCartItemIds.includes(it.id)}
+                                                        onChange={() => dispatch(toggleSelectItem(it.id))}
+                                                        className="h-5 w-5 accent-indigo-600"
+                                                    />
+
                                                     <img
                                                         src={product.image ?? "/placeholder-product.png"}
                                                         alt={product.name ?? "Sản phẩm"}
@@ -317,9 +351,21 @@ export default function MyCartPage() {
                             </div>
 
                             <div className="mt-6 grid gap-3">
-                                <Button onClick={() => navigate("/checkout")} variant="primary" className="h-12 text-base">
+                                <Button
+                                    onClick={() => {
+                                        if (selectedCartItemIds.length === 0) {
+                                            alert("Vui lòng chọn ít nhất 1 sản phẩm để thanh toán");
+                                            return;
+                                        }
+                                        dispatch(setSelectedCartItems(selectedCartItemIds));
+                                        navigate("/checkout");
+                                    }}
+                                    variant="primary"
+                                    className="h-12 text-base"
+                                >
                                     Tiến hành đặt hàng
                                 </Button>
+
                                 <Button variant="secondary" className="h-11" onClick={() => navigate("/")}>Tiếp tục mua sắm</Button>
                             </div>
 
