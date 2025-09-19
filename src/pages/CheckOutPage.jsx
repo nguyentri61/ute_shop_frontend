@@ -7,6 +7,7 @@ import Input from "../components/Input";
 import DropdownInput from "../components/DropdownInput";
 import { clearCart, fetchCart, fetchPreCheckout, updateQuantity } from "../features/order/cartSlice";
 import { createOrderCOD } from "../features/order/orderSlice";
+import { fetchMyShippingCoupons, fetchMyProductCoupons } from "../features/products/couponSlice";
 
 const CheckoutCOD = () => {
     const dispatch = useDispatch();
@@ -23,6 +24,11 @@ const CheckoutCOD = () => {
         loading,
         error,
     } = useSelector((state) => state.cart);
+
+    const {
+        shippingCoupons = [],
+        productCoupons = [],
+    } = useSelector((state) => state.coupons);
 
     const [form, setForm] = useState({
         address: "",
@@ -49,6 +55,11 @@ const CheckoutCOD = () => {
 
     useEffect(() => {
         dispatch(fetchCart());
+    }, [dispatch]);
+
+    useEffect(() => {
+        dispatch(fetchMyShippingCoupons());
+        dispatch(fetchMyProductCoupons());
     }, [dispatch]);
 
     loading & <p className="text-gray-500">Đang cập nhật...</p>;
@@ -183,19 +194,34 @@ const CheckoutCOD = () => {
                     ]}
                 />
 
-                <Input
-                    label="Shipping Voucher"
+                <DropdownInput
+                    label="Mã giảm giá vận chuyển"
                     value={form.shippingVoucher}
                     onChange={handleChange}
                     onBlur={handleVoucherBlur}
                     name="shippingVoucher"
+                    options={[
+                        { value: "", label: "Chọn mã giảm giá vận chuyển" },
+                        ...shippingCoupons.map((c) => ({
+                            value: c.id,
+                            label: `${c.code} - Giảm ${c.discount} đ`,
+                        })),
+                    ]}
                 />
-                <Input
-                    label="Product Voucher"
+
+                <DropdownInput
+                    label="Mã giảm giá sản phẩm"
                     value={form.productVoucher}
                     onChange={handleChange}
                     onBlur={handleVoucherBlur}
                     name="productVoucher"
+                    options={[
+                        { value: "", label: "Chọn mã giảm giá sản phẩm" },
+                        ...productCoupons.map((c) => ({
+                            value: c.id,
+                            label: `${c.code} - Giảm ${c.discount} đ`,
+                        })),
+                    ]}
                 />
 
                 <DropdownInput

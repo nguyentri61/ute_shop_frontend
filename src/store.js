@@ -8,6 +8,7 @@ import categoryReducer from './features/products/categorySlice';
 import profileReducer from './features/auth/profileSlice';
 import cartReducer from './features/order/cartSlice';
 import adminOrderReducer from './features/admin/adminOrderSlice';
+import couponsReducer from './features/products/couponSlice';
 
 export const store = configureStore({
     reducer: {
@@ -19,6 +20,7 @@ export const store = configureStore({
         forgotPassword: forgotPasswordReducer,
         profile: profileReducer,
         cart: cartReducer,
-        adminOrder: adminOrderReducer
+        adminOrder: adminOrderReducer,
+        coupons: couponsReducer,
     },
 });
