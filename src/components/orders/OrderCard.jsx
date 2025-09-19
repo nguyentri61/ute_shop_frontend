@@ -9,20 +9,20 @@ import OrderItemCard from "./OrderItemCard";
 
 const Badge = ({ children, variant = "default" }) => {
   const variants = {
-    default: "bg-gray-200 text-gray-700",
-    NEW: "bg-amber-100 text-amber-800",
-    CONFIRMED: "bg-blue-100 text-blue-800",
-    PREPARING: "bg-yellow-100 text-yellow-800",
-    SHIPPING: "bg-purple-100 text-purple-800",
-    DELIVERED: "bg-emerald-100 text-emerald-800",
-    CANCELLED: "bg-red-100 text-red-800",
-    CANCEL_REQUEST: "bg-orange-100 text-orange-800",
+    default: "bg-gray-100 text-gray-600",
+    NEW: "bg-amber-50 text-amber-700",
+    CONFIRMED: "bg-blue-50 text-blue-700",
+    PREPARING: "bg-yellow-50 text-yellow-700",
+    SHIPPING: "bg-purple-50 text-purple-700",
+    DELIVERED: "bg-green-50 text-green-700",
+    CANCELLED: "bg-red-50 text-red-700",
+    CANCEL_REQUEST: "bg-orange-50 text-orange-700",
   };
   return (
     <span
-      className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
+      className={`inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full ${
         variants[variant] ?? variants.default
-      }`}
+      } transition-colors`}
     >
       {children}
     </span>
@@ -38,16 +38,38 @@ const ActionButton = ({
 }) => {
   const variants = {
     primary: "bg-indigo-600 text-white hover:bg-indigo-700",
-    secondary: "bg-white text-gray-700 border hover:bg-gray-50",
+    secondary:
+      "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100",
     danger: "bg-red-500 text-white hover:bg-red-600",
   };
   return (
     <button
       onClick={onClick}
       disabled={disabled || loading}
-      className={`px-4 py-2 rounded-lg font-medium ${variants[variant]}`}
+      className={`px-4 py-1.5 rounded-md font-medium text-sm transition-colors ${variants[variant]} disabled:opacity-50 disabled:cursor-not-allowed`}
     >
-      {loading ? "..." : children}
+      {loading ? (
+        <span className="flex items-center gap-2">
+          <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z"
+            />
+          </svg>
+          {children}
+        </span>
+      ) : (
+        children
+      )}
     </button>
   );
 };
@@ -62,8 +84,6 @@ export default function OrderCard({
   const total = computeOrderTotal(order);
   const itemCount = totalItemsCount(order);
   const status = order.status;
-
-  // Chỉ lấy 6 ký tự đầu tiên của order.id
   const shortId = order.id.slice(0, 6).toUpperCase();
 
   const STATUS_LABELS = {
@@ -76,22 +96,30 @@ export default function OrderCard({
     CANCEL_REQUEST: "Yêu cầu hủy",
   };
 
+  const totalPrice = order.items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+
   return (
-    <article className="bg-white rounded-2xl shadow-md hover:shadow-lg transition p-5 flex flex-col border border-gray-100">
+    <article className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 p-6 border border-gray-100 max-w-2xl mx-auto">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <h3 className="text-sm font-medium text-gray-600">
-              Mã đơn:{" "}
-              <span className="text-gray-900 font-semibold">{shortId}</span>
-            </h3>
-            <Badge variant={status}>{STATUS_LABELS[status] || status}</Badge>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-gray-900">
+                Mã đơn: {shortId}
+              </h3>
+              <Badge variant={status}>{STATUS_LABELS[status] || status}</Badge>
+            </div>
+            <div className="mt-1 space-y-1">
+              <p className="text-xs text-gray-500">
+                Ngày đặt: {formatDate(order.createdAt)}
+              </p>
+              <p className="text-xs text-gray-500">Sản phẩm: {itemCount}</p>
+            </div>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Ngày đặt: {formatDate(order.createdAt)}
-          </p>
-          <p className="text-xs text-gray-500">Sản phẩm: {itemCount}</p>
         </div>
         <div className="text-right">
           <p className="text-xs text-gray-500">Tổng thanh toán</p>
@@ -101,32 +129,36 @@ export default function OrderCard({
         </div>
       </div>
 
-      {/* Preview products */}
-      <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
+      {/* Product Preview */}
+      <div className="mt-4 flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
         {(order.items || []).slice(0, 6).map((it) => (
-          <img
-            key={it.id}
-            src={it.product?.image}
-            alt={it.product?.name}
-            className="w-16 h-16 object-cover rounded-lg border border-gray-200 shadow-sm"
-          />
+          <div key={it.id} className="relative group">
+            <img
+              src={it.product?.image}
+              alt={it.product?.name}
+              className="w-20 h-20 object-cover rounded-md border border-gray-200 transition-transform group-hover:scale-105"
+            />
+            <span className="absolute top-0 right-0 bg-gray-800 text-white text-xs rounded-full px-2 py-1">
+              x{it.quantity}
+            </span>
+          </div>
         ))}
         {(order.items || []).length > 6 && (
-          <div className="w-16 h-16 flex items-center justify-center text-sm text-gray-500 bg-gray-100 rounded-lg">
+          <div className="w-20 h-20 flex items-center justify-center text-sm font-medium text-gray-500 bg-gray-50 rounded-md border border-gray-200">
             +{(order.items || []).length - 6}
           </div>
         )}
       </div>
 
       {/* Actions */}
-      <div className="mt-4 flex items-center justify-between">
+      <div className="mt-6 flex items-center justify-between">
         <div className="flex gap-2">
           <ActionButton onClick={onToggleExpand} variant="secondary">
             {isExpanded ? "Thu gọn" : "Xem chi tiết"}
           </ActionButton>
           <Link
             to={`/orders/${order.id}`}
-            className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           >
             Chi tiết
           </Link>
@@ -139,28 +171,27 @@ export default function OrderCard({
             variant="danger"
             loading={cancellingId === order.id}
           >
-            {cancellingId === order.id ? "Đang huỷ..." : "Huỷ đơn"}
+            {cancellingId === order.id ? "Đang huỷ" : "Huỷ đơn"}
           </ActionButton>
         )}
       </div>
 
-      {/* Expanded details */}
+      {/* Expanded Details */}
       {isExpanded && (
-        <div className="mt-4 pt-4 border-t">
-          <ul className="space-y-3 max-h-52 overflow-auto">
+        <div className="mt-6 pt-4 border-t border-gray-100">
+          <ul className="space-y-4 max-h-64 overflow-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
             {order.items?.map((it, index) => (
               <OrderItemCard
                 key={it.id || index}
                 product={it.product}
                 quantity={it.quantity}
+                canReview={order.status === "DELIVERED"}
               />
             ))}
           </ul>
-          <div className="mt-3 text-right text-sm text-gray-600">
+          <div className="mt-4 text-right text-sm text-gray-600">
             Tạm tính:{" "}
-            <span className="font-semibold">
-              {formatCurrency(order.totalPrice)}
-            </span>
+            <span className="font-semibold">{formatCurrency(totalPrice)}</span>
           </div>
         </div>
       )}
