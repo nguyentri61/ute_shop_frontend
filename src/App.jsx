@@ -17,6 +17,9 @@ import AdminRoute from "./components/AdminRoute";
 
 // Thêm import
 import { Toaster } from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { useEffect } from "react";
+import { initAuthFromToken } from "./features/auth/loginSlice";
 
 // Protected Route component
 function ProtectedRoute() {
@@ -51,6 +54,13 @@ function AuthLayout() {
 }
 
 function App() {
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(initAuthFromToken());
+  }, [dispatch]);
+
   return (
     <ErrorBoundary>
       <Routes>

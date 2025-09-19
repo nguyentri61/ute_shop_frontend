@@ -24,10 +24,10 @@ export default function Login() {
     };
 
     useEffect(() => {
-        if (isAuthenticated) {
-            // Kiểm tra nếu người dùng có quyền admin thì chuyển hướng đến trang admin
-            console.log("Check user login", user);
-            if (user && user.role === "ADMIN") {
+        // Kiểm tra xác thực và chuyển hướng
+        if (isAuthenticated && user) {
+            // Kiểm tra role chính xác là "ADMIN" (phân biệt chữ hoa/thường)
+            if (user.role === "ADMIN") {
                 navigate('/admin');
             } else {
                 navigate('/');

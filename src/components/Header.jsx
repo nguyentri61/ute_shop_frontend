@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchProfile, logout } from "../features/auth/profileSlice";
+import { fetchProfile } from "../features/auth/profileSlice";
+import { logout } from "../features/auth/loginSlice";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 
 export default function Header() {

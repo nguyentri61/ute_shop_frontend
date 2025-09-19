@@ -31,6 +31,19 @@ export const fetchCurrentUser = createAsyncThunk(
   }
 );
 
+export const initAuthFromToken = createAsyncThunk(
+  "auth/initAuthFromToken",
+  async (_, { dispatch }) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      // Có token thì gọi fetchCurrentUser để lấy lại user
+      await dispatch(fetchCurrentUser());
+      return token;
+    }
+    return null;
+  }
+);
+
 // thunk async
 export const loginUser = createAsyncThunk(
   "auth/login",
@@ -80,9 +93,14 @@ const loginSlice = createSlice({
       state.password = action.payload;
     },
     logout: (state) => {
+      // Xóa token khỏi localStorage
+      localStorage.removeItem("token");
+      // Reset state
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
+      state.email = "";
+      state.password = "";
     },
   },
   extraReducers: (builder) => {
