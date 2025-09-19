@@ -1,5 +1,5 @@
 // src/components/admin/AdminOrderList.jsx
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllOrders, updateOrderStatus } from "../../features/admin/adminOrderSlice";
 import toast from "react-hot-toast";
@@ -247,7 +247,7 @@ const AdminOrderList = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredOrders.map((order) => (
-                  <>
+                  <React.Fragment key={order.id}>
                     <tr key={order.id} className="hover:bg-gray-50 transition-colors duration-150">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-3">
@@ -454,7 +454,7 @@ const AdminOrderList = () => {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

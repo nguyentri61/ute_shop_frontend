@@ -1,4 +1,3 @@
-// src/pages/AdminPage.jsx
 import { useState } from "react";
 import { Toaster } from "react-hot-toast";
 import {
@@ -25,6 +24,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../features/auth/loginSlice";
 import { Avatar } from "antd";
+import { LogOut } from "lucide-react";
 
 const AdminPage = () => {
   const dispatch = useDispatch();
@@ -208,7 +208,7 @@ const AdminPage = () => {
                       onClick={handleLogout}
                       className="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50"
                     >
-                      <ArrowRightOnRectangleIcon className="w-4 h-4 mr-3" />
+                      <LogOut className="w-4 h-4 mr-3" />
                       Đăng xuất
                     </button>
                   </div>
@@ -314,13 +314,13 @@ const AdminPage = () => {
         }}
       />
 
-      {/* Click outside to close dropdown */}
+      {/* Click outside to close dropdown
       {userDropdownOpen && (
         <div
           className="fixed inset-0 z-10"
           onClick={() => setUserDropdownOpen(false)}
         />
-      )}
+      )} */}
     </div>
   );
 };
