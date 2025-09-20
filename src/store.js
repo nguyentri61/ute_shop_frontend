@@ -7,6 +7,12 @@ import forgotPasswordReducer from './features/auth/forgotPasswordSlice';
 import categoryReducer from './features/products/categorySlice';
 import profileReducer from './features/auth/profileSlice';
 import cartReducer from './features/order/cartSlice';
+import adminOrderReducer from './features/admin/adminOrderSlice';
+import couponsReducer from './features/products/couponSlice';
+import favoriteReducer from './features/products/favoriteSlice';
+import recentlyViewedReducer from './features/products/recentlyViewedSlice';
+import similarProductsReducer from './features/products/similarProductsSlice';
+
 
 export const store = configureStore({
     reducer: {
@@ -17,6 +23,11 @@ export const store = configureStore({
         otp: otpReducer,
         forgotPassword: forgotPasswordReducer,
         profile: profileReducer,
-        cart: cartReducer
+        cart: cartReducer,
+        adminOrder: adminOrderReducer,
+        coupons: couponsReducer,
+        favorite: favoriteReducer,
+        recentlyViewed: recentlyViewedReducer,
+        similarProducts: similarProductsReducer,
     },
 });

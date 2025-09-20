@@ -4,8 +4,12 @@ import { useEffect, useState } from "react";
 import { ProductDetail } from "../service/api.product.service";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addToCart, fetchCart } from "../features/order/cartSlice";
+import { fetchSimilarProducts } from "../features/products/similarProductsSlice";
+import { addToRecentlyViewed } from "../features/products/recentlyViewedSlice";
+import FavoriteButton from "../components/FavoriteButton";
+import ProductSection from "../components/ProductSection";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import toast from "react-hot-toast";
@@ -30,12 +34,18 @@ export default function ProductDetailPage() {
           setSelectedVariant(res.data.variants[0]);
           setSelectedColor(res.data.variants[0].color);
         }
+        
+        // Thêm sản phẩm vào danh sách đã xem
+        dispatch(addToRecentlyViewed(id));
+        
+        // Tải sản phẩm tương tự
+        dispatch(fetchSimilarProducts(id));
       } catch (err) {
         console.error(err);
       }
     };
     fetchProduct();
-  }, [id]);
+  }, [id, dispatch]);
 
   if (!product || !selectedVariant)
     return (
@@ -112,8 +122,9 @@ export default function ProductDetailPage() {
 
         {/* Thông tin sản phẩm */}
         <div className="flex flex-col bg-white rounded-3xl shadow-xl p-4 sm:p-8">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-indigo-800 mb-2 sm:mb-4">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-indigo-800 mb-2 sm:mb-4 flex items-center gap-2">
             {name}
+            <FavoriteButton productId={id} className="ml-2" />
           </h1>
           <p className="text-gray-500 text-sm sm:text-base mb-2">
             Danh mục:{" "}
@@ -233,6 +244,26 @@ export default function ProductDetailPage() {
           </button>
         </div>
       </div>
+      {/* Phần sản phẩm tương tự */}
+      <div className="mt-8">
+        <SimilarProducts productId={id} />
+      </div>
     </div>
   );
+}
+
+// Component hiển thị sản phẩm tương tự
+function SimilarProducts({ productId }) {
+  const dispatch = useDispatch();
+  const { products, loading } = useSelector((state) => state.similarProducts);
+
+  useEffect(() => {
+    if (productId) {
+      dispatch(fetchSimilarProducts(productId));
+    }
+  }, [productId, dispatch]);
+
+  if (loading || products.length === 0) return null;
+
+  return <ProductSection title="Sản phẩm tương tự" products={products} />;
 }

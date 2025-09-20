@@ -40,6 +40,13 @@ const ProductDetail = async (id) => {
   const API = `/products/${id}`;
   return axios.get(API);
 };
+
+const CreateReview = async (productId, reviewData) => {
+  if (!productId) throw new Error("Product id is required");
+  const API = `/products/${productId}/reviews`;
+  return axios.post(API, reviewData);
+};
+
 export {
   AllProducts,
   ProductDetail,
@@ -48,4 +55,5 @@ export {
   BestSellingProducts,
   MostViewedProducts,
   TopDiscountProducts,
+  CreateReview,
 };

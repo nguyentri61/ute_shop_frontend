@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 export default function Login() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { email, password, loading, error, isAuthenticated } = useSelector((state) => state.login);
+    const { email, password, loading, error, isAuthenticated, user } = useSelector((state) => state.login);
 
     const handleSubmit = () => {
         if (!email || !password) {
@@ -24,10 +24,16 @@ export default function Login() {
     };
 
     useEffect(() => {
-        if (isAuthenticated) {
-            navigate('/');
+        // Kiểm tra xác thực và chuyển hướng
+        if (isAuthenticated && user) {
+            // Kiểm tra role chính xác là "ADMIN" (phân biệt chữ hoa/thường)
+            if (user.role === "ADMIN") {
+                navigate('/admin');
+            } else {
+                navigate('/');
+            }
         }
-    }, [isAuthenticated, navigate]);
+    }, [isAuthenticated, user, navigate]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">

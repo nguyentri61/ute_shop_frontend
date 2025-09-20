@@ -12,9 +12,16 @@ import ErrorPage from "./pages/ErrorPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import CheckOutPage from "./pages/CheckOutPage";
 import MyCartPage from "./pages/MyCartPage";
+import AdminPage from "./pages/AdminPage";
+import AdminRoute from "./components/AdminRoute";
+import FavoritesPage from "./pages/FavoritesPage";
+import RecentlyViewedPage from "./pages/RecentlyViewedPage";
 
 // Thêm import
 import { Toaster } from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { useEffect } from "react";
+import { initAuthFromToken } from "./features/auth/loginSlice";
 
 // Protected Route component
 function ProtectedRoute() {
@@ -49,6 +56,13 @@ function AuthLayout() {
 }
 
 function App() {
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(initAuthFromToken());
+  }, [dispatch]);
+
   return (
     <ErrorBoundary>
       <Routes>
@@ -63,6 +77,8 @@ function App() {
             <Route path="/orders" element={<MyOrdersPage />} />
             <Route path="/checkout" element={<CheckOutPage />} />
             <Route path="/cart" element={<MyCartPage />} />
+            <Route path="/favorites" element={<FavoritesPage />} />
+            <Route path="/recently-viewed" element={<RecentlyViewedPage />} />
           </Route>
         </Route>
 
@@ -72,6 +88,11 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/verify-otp" element={<VerifyOTP />} />
+        </Route>
+
+        {/* Admin Route */}
+        <Route path="/admin" element={<AdminRoute />}>
+          <Route index element={<AdminPage />} />
         </Route>
 
         {/* Catch all */}
