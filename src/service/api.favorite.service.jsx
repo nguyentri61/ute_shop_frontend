@@ -32,13 +32,13 @@ const GetSimilarProducts = async (productId, limit = 8) => {
 
 // Lấy danh sách sản phẩm đã xem
 const GetRecentlyViewedProducts = async (limit = 8) => {
-  const API = `/products/recently-viewed?limit=${limit}`;
+  const API = `/recently-viewed?limit=${limit}`;
   return axios.get(API);
 };
 
 // Thêm sản phẩm vào danh sách đã xem
 const AddToRecentlyViewed = async (productId) => {
-  const API = "/products/recently-viewed/add";
+  const API = "/recently-viewed/add";
   return axios.post(API, { productId });
 };
 
