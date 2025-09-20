@@ -126,50 +126,55 @@ export default function ProductDetailPage() {
           </p>
 
           {/* Chọn màu */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Màu sắc:
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {uniqueColors.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => {
-                    setSelectedColor(c);
-                    const firstSize = variants.find((v) => v.color === c);
-                    setSelectedVariant(firstSize);
-                  }}
-                  className={`px-3 py-1 rounded-lg border ${selectedColor === c
-                    ? "bg-indigo-600 text-white border-indigo-600"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                >
-                  {c}
-                </button>
-              ))}
+          {uniqueColors.length > 0 && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Màu sắc:
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {uniqueColors.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => {
+                      setSelectedColor(c);
+                      const firstSize = variants.find((v) => v.color === c);
+                      setSelectedVariant(firstSize);
+                    }}
+                    className={`px-3 py-1 rounded-lg border ${selectedColor === c
+                        ? "bg-indigo-600 text-white border-indigo-600"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Chọn size */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Kích thước:
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {sizesByColor.map((v) => (
-                <button
-                  key={v.id + "-size"}
-                  onClick={() => setSelectedVariant(v)}
-                  className={`px-3 py-1 rounded-lg border ${selectedVariant.id === v.id
-                    ? "bg-indigo-600 text-white border-indigo-600"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                >
-                  {v.size}
-                </button>
-              ))}
+          {sizesByColor.length > 0 && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Kích thước:
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {sizesByColor.map((v) => (
+                  <button
+                    key={v.id + "-size"}
+                    onClick={() => setSelectedVariant(v)}
+                    className={`px-3 py-1 rounded-lg border ${selectedVariant.id === v.id
+                        ? "bg-indigo-600 text-white border-indigo-600"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                  >
+                    {v.size}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
 
           {/* Giá */}
           <div className="mb-4 sm:mb-6 flex items-center gap-4">
