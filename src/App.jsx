@@ -14,6 +14,8 @@ import CheckOutPage from "./pages/CheckOutPage";
 import MyCartPage from "./pages/MyCartPage";
 import AdminPage from "./pages/AdminPage";
 import AdminRoute from "./components/AdminRoute";
+import FavoritesPage from "./pages/FavoritesPage";
+import RecentlyViewedPage from "./pages/RecentlyViewedPage";
 
 // Thêm import
 import { Toaster } from "react-hot-toast";
@@ -75,6 +77,8 @@ function App() {
             <Route path="/orders" element={<MyOrdersPage />} />
             <Route path="/checkout" element={<CheckOutPage />} />
             <Route path="/cart" element={<MyCartPage />} />
+            <Route path="/favorites" element={<FavoritesPage />} />
+            <Route path="/recently-viewed" element={<RecentlyViewedPage />} />
           </Route>
         </Route>
 
