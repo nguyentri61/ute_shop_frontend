@@ -34,10 +34,10 @@ export default function ProductDetailPage() {
           setSelectedVariant(res.data.variants[0]);
           setSelectedColor(res.data.variants[0].color);
         }
-        
+
         // Thêm sản phẩm vào danh sách đã xem
         dispatch(addToRecentlyViewed(id));
-        
+
         // Tải sản phẩm tương tự
         dispatch(fetchSimilarProducts(id));
       } catch (err) {
@@ -132,6 +132,17 @@ export default function ProductDetailPage() {
               {category?.name || "N/A"}
             </span>
           </p>
+          {/* Thêm lượt đánh giá và đã bán ở đây */}
+          <div className="flex items-center gap-4 mb-4">
+            <p className="text-gray-600 text-sm sm:text-base">
+              <span className="font-medium text-indigo-700">{product.reviewCount}</span>{" "}
+              lượt đánh giá
+            </p>
+            <p className="text-gray-600 text-sm sm:text-base">
+              Đã bán:{" "}
+              <span className="font-medium text-indigo-700">{product.totalSold}</span>
+            </p>
+          </div>
           <p className="text-gray-700 text-base sm:text-lg leading-relaxed mb-4 sm:mb-6">
             {description}
           </p>
@@ -152,8 +163,8 @@ export default function ProductDetailPage() {
                       setSelectedVariant(firstSize);
                     }}
                     className={`px-3 py-1 rounded-lg border ${selectedColor === c
-                        ? "bg-indigo-600 text-white border-indigo-600"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      ? "bg-indigo-600 text-white border-indigo-600"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                   >
                     {c}
@@ -175,8 +186,8 @@ export default function ProductDetailPage() {
                     key={v.id + "-size"}
                     onClick={() => setSelectedVariant(v)}
                     className={`px-3 py-1 rounded-lg border ${selectedVariant.id === v.id
-                        ? "bg-indigo-600 text-white border-indigo-600"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      ? "bg-indigo-600 text-white border-indigo-600"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                   >
                     {v.size}
