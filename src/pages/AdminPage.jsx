@@ -13,7 +13,7 @@ import {
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import AdminOrderList from "../components/admin/AdminOrderList";
 import AdminSidebar from "../components/admin/AdminSidebar";
@@ -25,6 +25,7 @@ import { useNavigate } from "react-router-dom";
 import { logout } from "../features/auth/loginSlice";
 import { Avatar } from "antd";
 import { LogOut } from "lucide-react";
+import NotificationBell from "../components/NotificationBell";
 
 const AdminPage = () => {
   const dispatch = useDispatch();
@@ -49,7 +50,7 @@ const AdminPage = () => {
   };
 
   const getPageTitle = () => {
-    const item = menuItems.find(item => item.id === activeTab);
+    const item = menuItems.find((item) => item.id === activeTab);
     return item ? item.label : "Dashboard";
   };
 
@@ -64,7 +65,11 @@ const AdminPage = () => {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 items-center justify-between px-6 border-b border-gray-200">
@@ -95,13 +100,18 @@ const AdminPage = () => {
                     setActiveTab(item.id);
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${isActive
-                    ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                    isActive
+                      ? "bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
                 >
                   <div className="flex items-center space-x-3">
-                    <Icon className={`w-5 h-5 ${isActive ? 'text-indigo-500' : 'text-gray-400'}`} />
+                    <Icon
+                      className={`w-5 h-5 ${
+                        isActive ? "text-indigo-500" : "text-gray-400"
+                      }`}
+                    />
                     <span>{item.label}</span>
                   </div>
                   {item.badge && (
@@ -148,8 +158,12 @@ const AdminPage = () => {
               </button>
 
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">{getPageTitle()}</h1>
-                <p className="text-sm text-gray-500">Quản lý và theo dõi hoạt động</p>
+                <h1 className="text-xl font-semibold text-gray-900">
+                  {getPageTitle()}
+                </h1>
+                <p className="text-sm text-gray-500">
+                  Quản lý và theo dõi hoạt động
+                </p>
               </div>
             </div>
 
@@ -169,8 +183,7 @@ const AdminPage = () => {
 
               {/* Notifications */}
               <button className="relative p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-lg">
-                <BellIcon className="w-6 h-6" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                <NotificationBell />
               </button>
 
               {/* User dropdown */}
@@ -227,9 +240,13 @@ const AdminPage = () => {
                 <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Tổng đơn hàng</p>
+                      <p className="text-sm font-medium text-gray-600">
+                        Tổng đơn hàng
+                      </p>
                       <p className="text-3xl font-bold text-gray-900">1,234</p>
-                      <p className="text-sm text-green-600">+12% từ tháng trước</p>
+                      <p className="text-sm text-green-600">
+                        +12% từ tháng trước
+                      </p>
                     </div>
                     <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                       <ShoppingBagIcon className="w-6 h-6 text-blue-600" />
@@ -240,9 +257,13 @@ const AdminPage = () => {
                 <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Sản phẩm</p>
+                      <p className="text-sm font-medium text-gray-600">
+                        Sản phẩm
+                      </p>
                       <p className="text-3xl font-bold text-gray-900">567</p>
-                      <p className="text-sm text-green-600">+5% từ tháng trước</p>
+                      <p className="text-sm text-green-600">
+                        +5% từ tháng trước
+                      </p>
                     </div>
                     <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                       <CubeIcon className="w-6 h-6 text-green-600" />
@@ -253,9 +274,13 @@ const AdminPage = () => {
                 <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Người dùng</p>
+                      <p className="text-sm font-medium text-gray-600">
+                        Người dùng
+                      </p>
                       <p className="text-3xl font-bold text-gray-900">890</p>
-                      <p className="text-sm text-green-600">+8% từ tháng trước</p>
+                      <p className="text-sm text-green-600">
+                        +8% từ tháng trước
+                      </p>
                     </div>
                     <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                       <UsersIcon className="w-6 h-6 text-purple-600" />
@@ -266,9 +291,13 @@ const AdminPage = () => {
                 <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Doanh thu</p>
+                      <p className="text-sm font-medium text-gray-600">
+                        Doanh thu
+                      </p>
                       <p className="text-3xl font-bold text-gray-900">₫125M</p>
-                      <p className="text-sm text-green-600">+15% từ tháng trước</p>
+                      <p className="text-sm text-green-600">
+                        +15% từ tháng trước
+                      </p>
                     </div>
                     <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
                       <ChartBarIcon className="w-6 h-6 text-orange-600" />
@@ -282,8 +311,13 @@ const AdminPage = () => {
             <div className="bg-white rounded-xl shadow-sm border border-gray-100">
               {activeTab === "dashboard" && (
                 <div className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Dashboard Overview</h3>
-                  <p className="text-gray-600">Chào mừng bạn đến với trang quản trị. Chọn một mục từ menu để bắt đầu.</p>
+                  <h3 className="text-lg font-semibold mb-4">
+                    Dashboard Overview
+                  </h3>
+                  <p className="text-gray-600">
+                    Chào mừng bạn đến với trang quản trị. Chọn một mục từ menu
+                    để bắt đầu.
+                  </p>
                 </div>
               )}
               {activeTab === "orders" && <AdminOrderList />}
@@ -292,8 +326,12 @@ const AdminPage = () => {
               {activeTab === "categories" && <AdminCategoryList />}
               {activeTab === "settings" && (
                 <div className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Cài đặt hệ thống</h3>
-                  <p className="text-gray-600">Trang cài đặt đang được phát triển.</p>
+                  <h3 className="text-lg font-semibold mb-4">
+                    Cài đặt hệ thống
+                  </h3>
+                  <p className="text-gray-600">
+                    Trang cài đặt đang được phát triển.
+                  </p>
                 </div>
               )}
             </div>
@@ -306,10 +344,11 @@ const AdminPage = () => {
         toastOptions={{
           duration: 4000,
           style: {
-            background: '#fff',
-            color: '#333',
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-            border: '1px solid #e5e7eb',
+            background: "#fff",
+            color: "#333",
+            boxShadow:
+              "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+            border: "1px solid #e5e7eb",
           },
         }}
       />
