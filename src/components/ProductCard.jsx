@@ -7,35 +7,42 @@ import { addToRecentlyViewed } from "../features/products/recentlyViewedSlice";
 export default function ProductCard({ product }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
+
   if (!product) return null;
-  const { id, name, description, price, discountPrice, createdAt, images, averageRating, reviewCount } =
-    product;
+  const {
+    id,
+    name,
+    description,
+    price,
+    discountPrice,
+    createdAt,
+    images,
+    averageRating,
+    reviewCount,
+  } = product;
 
-  // Hình sản phẩm
   const imageUrl = images?.[0]?.url || "/placeholder-product.png";
-
-  // Badge NEW <7 ngày
   const isNew = new Date() - new Date(createdAt) < 7 * 24 * 60 * 60 * 1000;
-
-  // Badge SALE nếu có discountPrice
   const sale = discountPrice && discountPrice < price;
-  
+
   const handleClick = () => {
-    // Thêm sản phẩm vào danh sách đã xem
-    if (id) {
-      dispatch(addToRecentlyViewed(id));
-    }
+    if (id) dispatch(addToRecentlyViewed(id));
     navigate(`/products/${id}`);
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden w-full relative">
+    <div
+      className="bg-white rounded-lg shadow-md overflow-hidden w-full relative
+                 transform transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer"
+    >
       {/* Nút yêu thích */}
       <div className="absolute top-2 right-2 z-10">
-        <FavoriteButton productId={id} className="bg-white/80 hover:bg-white rounded-full p-1.5 shadow-sm" />
+        <FavoriteButton
+          productId={id}
+          className="bg-white/80 hover:bg-white rounded-full p-1.5 shadow-sm"
+        />
       </div>
-      
+
       {/* Badges */}
       <div className="absolute top-2 left-2 flex flex-col gap-1">
         {isNew && (
@@ -51,10 +58,7 @@ export default function ProductCard({ product }) {
       </div>
 
       {/* Hình ảnh */}
-      <div
-        className="h-48 w-full bg-gray-200 cursor-pointer"
-        onClick={handleClick}
-      >
+      <div className="h-48 w-full bg-gray-200" onClick={handleClick}>
         <img
           src={imageUrl}
           alt={name}
@@ -68,13 +72,13 @@ export default function ProductCard({ product }) {
       {/* Thông tin sản phẩm */}
       <div className="p-4">
         <h3
-          className="text-lg font-semibold mb-1 line-clamp-2 cursor-pointer hover:text-indigo-600 transition"
+          className="text-lg font-semibold mb-1 line-clamp-2 hover:text-indigo-600 transition"
           onClick={handleClick}
         >
           {name}
         </h3>
         <p className="text-gray-600 text-sm mb-2 line-clamp-2">{description}</p>
-        
+
         {/* Rating */}
         {averageRating > 0 && (
           <div className="flex items-center gap-1 mb-2">
@@ -82,11 +86,8 @@ export default function ProductCard({ product }) {
               {[...Array(5)].map((_, i) => (
                 <svg
                   key={i}
-                  className={`w-4 h-4 ${
-                    i < Math.floor(averageRating)
-                      ? "text-yellow-400"
-                      : "text-gray-300"
-                  }`}
+                  className={`w-4 h-4 ${i < Math.floor(averageRating) ? "text-yellow-400" : "text-gray-300"
+                    }`}
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -99,6 +100,8 @@ export default function ProductCard({ product }) {
             </span>
           </div>
         )}
+
+        {/* Giá */}
         <div className="flex items-center justify-between">
           <div>
             {sale ? (

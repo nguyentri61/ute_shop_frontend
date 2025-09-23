@@ -47,6 +47,42 @@ const CreateReview = async (productId, reviewData) => {
   return axios.post(API, reviewData);
 };
 
+const ProductByCategory = async ({ categoryId, page, limit }) => {
+  if (!categoryId) throw new Error("Category id is required");
+  const API = `/products/category/${categoryId}?page=${page}&limit=${limit}`;
+  return axios.get(API);
+}
+
+const ProductsByFilter = async (filters) => {
+  const {
+    search,
+    categoryId,
+    minPrice,
+    maxPrice,
+    sortDate,
+    sortPrice,
+    page = 1,
+    limit = 8,
+  } = filters;
+
+  // Tạo query string
+  const params = new URLSearchParams();
+
+  if (search) params.append("search", search);
+  if (categoryId) params.append("category", categoryId);
+  if (minPrice !== undefined && minPrice >= 0) params.append("minPrice", minPrice);
+  if (maxPrice !== undefined && maxPrice >= 0) params.append("maxPrice", maxPrice);
+  if (sortDate) params.append("sortDate", sortDate); // "asc" | "desc"
+  if (sortPrice) params.append("sortPrice", sortPrice); // "asc" | "desc"
+
+  params.append("page", page);
+  params.append("limit", limit);
+
+  const API = `/products?${params.toString()}`;
+  console.log("API with filters:", API);
+  return axios.get(API);
+};
+
 export {
   AllProducts,
   ProductDetail,
@@ -56,4 +92,6 @@ export {
   MostViewedProducts,
   TopDiscountProducts,
   CreateReview,
+  ProductByCategory,
+  ProductsByFilter
 };

@@ -22,6 +22,9 @@ import { Toaster } from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { useEffect } from "react";
 import { initAuthFromToken } from "./features/auth/loginSlice";
+import ProductsByCategoryPage from "./pages/ProductsByCategoryPage";
+import ProductsPage from "./pages/ProductPage";
+import AboutPage from "./pages/AboutPage";
 
 // Protected Route component
 function ProtectedRoute() {
@@ -70,6 +73,9 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/products/:id" element={<ProductDetailPage />} />
+          <Route path="/categories/:categoryId" element={<ProductsByCategoryPage />} />
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/about" element={<AboutPage />} />
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>

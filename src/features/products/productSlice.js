@@ -6,6 +6,8 @@ import {
     BestSellingProducts,
     MostViewedProducts,
     TopDiscountProducts,
+    ProductByCategory,
+    ProductsByFilter
 } from "../../service/api.product.service";
 
 // thunk gọi API
@@ -39,12 +41,24 @@ export const fetchTopDiscountProducts = createAsyncThunk("product/fetchTopDiscou
     return res.data;
 });
 
+export const fetchProductByCategory = createAsyncThunk("product/fetchByCategory", async ({ categoryId, page, limit }) => {
+    const res = await ProductByCategory({ categoryId, page, limit });
+    return res.data;
+});
+
+export const fetchProductsByFilter = createAsyncThunk("product/fetchByFilter", async (filters) => {
+    const res = await ProductsByFilter(filters);
+    return res.data;
+});
+
 const productSlice = createSlice({
     name: "product",
     initialState: {
         all: [],
+        productByCategory: [],
         paginated: [],
-        pagination: { page: 1, limit: 10, total: 0, totalPages: 1 },
+        filtered: [],
+        pagination: { page: 1, limit: 8, total: 0, totalPages: 1 },
         newest: [],
         bestSelling: [],
         mostViewed: [],
@@ -87,7 +101,30 @@ const productSlice = createSlice({
             // TopDiscount
             .addCase(fetchTopDiscountProducts.fulfilled, (state, action) => {
                 state.topDiscount = action.payload;
+            })
+            // ProductByCategory
+            .addCase(fetchProductByCategory.pending, (state) => { state.loading = true; state.error = null; })
+            .addCase(fetchProductByCategory.fulfilled, (state, action) => {
+                state.loading = false;
+                state.productByCategory = action.payload.products;
+                state.pagination = action.payload.pagination;
+            })
+            .addCase(fetchProductByCategory.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message;
+            })
+            .addCase(fetchProductsByFilter.pending, (state) => { state.loading = true; state.error = null; })
+            .addCase(fetchProductsByFilter.fulfilled, (state, action) => {
+                state.filtered = action.payload.products;
+                state.loading = false;
+                state.error = null;
+                state.pagination = action.payload.pagination;
+            })
+            .addCase(fetchProductsByFilter.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message;
             });
+
     },
 });
 
