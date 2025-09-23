@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { fetchProfile } from "../features/auth/profileSlice";
 import { logout } from "../features/auth/loginSlice";
 import { useNavigate, Link, useLocation } from "react-router-dom";
+import NotificationBell from "./NotificationBell";
 
 export default function Header() {
     const dispatch = useDispatch();
@@ -96,10 +97,17 @@ export default function Header() {
                         ))}
                     </div>
 
+
                     {/* User Menu & Mobile Toggle */}
                     <div className="flex items-center space-x-3">
+
+                        {/* Notifications */}
+                        <button className="relative p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-lg">
+                            <NotificationBell />
+                        </button>
                         {profile ? (
                             <div className="relative" ref={menuRef}>
+
                                 <button
                                     onClick={() => setOpenMenu(!openMenu)}
                                     className="flex items-center space-x-3 px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 transition-all duration-200 hover:shadow-md hover:scale-[1.02] hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -213,6 +221,7 @@ export default function Header() {
                             </button>
                         )}
 
+
                         {/* Mobile menu button */}
                         <button
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -226,6 +235,9 @@ export default function Header() {
                                 )}
                             </svg>
                         </button>
+
+
+
                     </div>
                 </div>
 
