@@ -1,27 +1,39 @@
 // src/pages/admin/DashboardPage.jsx
 import React, { useEffect } from 'react';
 import {
-    ShoppingBagIcon,
-    CubeIcon,
-    UsersIcon,
-    ChartBarIcon,
-    ArrowUpIcon,
-    ArrowDownIcon,
+    ShoppingBagIcon, CubeIcon, UsersIcon, ChartBarIcon,
+    ArrowUpIcon, ArrowDownIcon,
 } from '@heroicons/react/24/outline';
 import {
-    ResponsiveContainer,
-    AreaChart, Area,
+    ResponsiveContainer, AreaChart, Area,
     CartesianGrid, XAxis, YAxis, Tooltip,
     PieChart, Pie, Cell
 } from 'recharts';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchDashboardStats } from '../../features/admin/dashboardStatsSlice';
+import {
+    fetchDashboardStats,
+    fetchWeeklySales,
+    fetchCategoryShare
+} from '../../features/admin/dashboardStatsSlice';
 import { fetchBestSellingProducts } from '../../features/products/productSlice';
 
 const DashboardPage = () => {
     const dispatch = useDispatch();
 
+    // Stats cards
     const { stats } = useSelector((state) => state.dashboardStats);
+
+    // Weekly sales (Area chart)
+    const {
+        weeklySales, weeklyLoading, weeklyError
+    } = useSelector((state) => state.dashboardStats);
+
+    // Category share (Pie chart)
+    const {
+        categoryShare, categoryLoading, categoryError
+    } = useSelector((state) => state.dashboardStats);
+
+    // Top selling
     const {
         bestSelling,
         loading: productLoading,
@@ -30,25 +42,10 @@ const DashboardPage = () => {
 
     useEffect(() => {
         dispatch(fetchDashboardStats());
+        dispatch(fetchWeeklySales({ status: 'DELIVERED' }));
+        dispatch(fetchCategoryShare({ range: '30d', status: 'DELIVERED' })); // 30 ngày gần nhất
         dispatch(fetchBestSellingProducts());
     }, [dispatch]);
-
-    const salesData = [
-        { name: 'T2', sales: 15000000, orders: 45 },
-        { name: 'T3', sales: 22000000, orders: 67 },
-        { name: 'T4', sales: 18000000, orders: 54 },
-        { name: 'T5', sales: 28000000, orders: 82 },
-        { name: 'T6', sales: 35000000, orders: 95 },
-        { name: 'T7', sales: 42000000, orders: 120 },
-        { name: 'CN', sales: 38000000, orders: 110 }
-    ];
-
-    const categoryData = [
-        { name: 'Điện thoại', value: 45, color: '#0088FE' },
-        { name: 'Laptop', value: 30, color: '#00C49F' },
-        { name: 'Phụ kiện', value: 15, color: '#FFBB28' },
-        { name: 'Tablet', value: 10, color: '#FF8042' }
-    ];
 
     const recentActivity = [
         { id: 1, action: 'Đơn hàng mới', detail: 'ORD001 - iPhone 15 Pro', time: '5 phút trước', type: 'order' },
@@ -69,6 +66,8 @@ const DashboardPage = () => {
         if (percent < 0) return `-${Math.abs(percent)}% từ tháng trước`;
         return `0% từ tháng trước`;
     };
+
+    const palette = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A78BFA', '#F472B6', '#34D399', '#F59E0B'];
 
     return (
         <div className="space-y-6">
@@ -177,6 +176,7 @@ const DashboardPage = () => {
                         </div>
                     </>
                 ) : (
+                    // skeleton
                     <>
                         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-pulse h-40" />
                         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-pulse h-40" />
@@ -199,41 +199,74 @@ const DashboardPage = () => {
                             </div>
                         </div>
                     </div>
+
+                    {weeklyError && (
+                        <div className="p-3 mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded">
+                            Không tải được doanh thu tuần: {String(weeklyError?.message || weeklyError)}
+                        </div>
+                    )}
+
                     <div style={{ width: '100%', height: 300 }}>
                         <ResponsiveContainer>
-                            <AreaChart data={salesData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="name" />
-                                <YAxis />
-                                <Tooltip formatter={(value) => [formatCurrency(value), 'Doanh thu']} />
-                                <Area type="monotone" dataKey="sales" stroke="#6366f1" fill="#6366f1" fillOpacity={0.1} />
-                            </AreaChart>
+                            {weeklyLoading ? (
+                                <div className="w-full h-full animate-pulse bg-gray-100 rounded" />
+                            ) : (
+                                <AreaChart data={weeklySales}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="name" />
+                                    <YAxis />
+                                    <Tooltip
+                                        formatter={(value, key) => [
+                                            key === 'sales'
+                                                ? formatCurrency(value)
+                                                : new Intl.NumberFormat('vi-VN').format(value),
+                                            key === 'sales' ? 'Doanh thu' : 'Đơn hàng',
+                                        ]}
+                                    />
+                                    <Area type="monotone" dataKey="sales" stroke="#6366f1" fill="#6366f1" fillOpacity={0.1} />
+                                </AreaChart>
+                            )}
                         </ResponsiveContainer>
                     </div>
                 </div>
 
                 {/* Category Distribution */}
                 <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-6">Phân bố danh mục</h3>
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-lg font-semibold text-gray-900">Phân bố danh mục (30 ngày)</h3>
+                        {categoryError && (
+                            <span className="text-sm text-red-600">Lỗi: {String(categoryError?.message || categoryError)}</span>
+                        )}
+                    </div>
                     <div style={{ width: '100%', height: 300 }}>
                         <ResponsiveContainer>
-                            <PieChart>
-                                <Pie
-                                    data={categoryData}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                                    outerRadius={80}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                >
-                                    {categoryData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                            </PieChart>
+                            {categoryLoading ? (
+                                <div className="w-full h-full animate-pulse bg-gray-100 rounded" />
+                            ) : (
+                                <PieChart>
+                                    <Pie
+                                        data={(categoryShare ?? []).map((c, i) => ({
+                                            name: c.name,
+                                            value: c.value, // doanh thu
+                                            color: palette[i % palette.length],
+                                        }))}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={false}
+                                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                        outerRadius={80}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                    >
+                                        {(categoryShare ?? []).map((_, i) => (
+                                            <Cell key={`cell-${i}`} fill={palette[i % palette.length]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip
+                                        formatter={(val) => [new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val), 'Doanh thu']}
+                                    />
+                                </PieChart>
+                            )}
                         </ResponsiveContainer>
                     </div>
                 </div>
@@ -279,22 +312,21 @@ const DashboardPage = () => {
                                     </div>
                                     <div className="text-right">
                                         <p className="font-semibold text-gray-900">
-                                            {formatCurrency(product.variantDiscountPrice ?? 0)}
+                                            {formatCurrency(product.variantDiscountPrice ?? product.discountPrice ?? product.price ?? 0)}
                                         </p>
                                         {/* Giá giảm (thay cho khối xu hướng) */}
                                         <div className="flex items-center justify-end mt-1">
                                             {(() => {
-                                                // Ưu tiên dùng giá KM (sale) nếu có, rồi đến giá thường (base)
                                                 const sale =
                                                     product?.variantDiscountPrice ??
                                                     product?.discountPrice ??
-                                                    product?.variantPrice ?? // fallback nếu không có discount
+                                                    product?.variantPrice ??
                                                     product?.price ?? 0;
 
                                                 const base =
                                                     product?.variantPrice ??
                                                     product?.price ??
-                                                    product?.variantDiscountPrice ?? // fallback cực đoan
+                                                    product?.variantDiscountPrice ??
                                                     product?.discountPrice ?? 0;
 
                                                 const hasDiscount = sale > 0 && base > 0 && sale < base;
@@ -314,7 +346,6 @@ const DashboardPage = () => {
                                                 );
                                             })()}
                                         </div>
-
                                     </div>
                                 </div>
                             ))}
@@ -334,14 +365,14 @@ const DashboardPage = () => {
                             <div key={activity.id} className="flex items-start space-x-3">
                                 <div
                                     className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${activity.type === 'order'
-                                        ? 'bg-blue-100 text-blue-800'
-                                        : activity.type === 'warning'
-                                            ? 'bg-yellow-100 text-yellow-800'
-                                            : activity.type === 'user'
-                                                ? 'bg-green-100 text-green-800'
-                                                : activity.type === 'payment'
-                                                    ? 'bg-purple-100 text-purple-800'
-                                                    : 'bg-gray-100 text-gray-800'
+                                            ? 'bg-blue-100 text-blue-800'
+                                            : activity.type === 'warning'
+                                                ? 'bg-yellow-100 text-yellow-800'
+                                                : activity.type === 'user'
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : activity.type === 'payment'
+                                                        ? 'bg-purple-100 text-purple-800'
+                                                        : 'bg-gray-100 text-gray-800'
                                         }`}
                                 >
                                     {activity.type === 'order'
