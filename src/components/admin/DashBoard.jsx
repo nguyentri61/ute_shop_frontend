@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
     ShoppingBagIcon,
     CubeIcon,
@@ -11,8 +11,19 @@ import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell
 } from 'recharts';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchDashboardStats } from '../../features/admin/dashboardStatsSlice';
 
 const DashboardPage = () => {
+    const dispatch = useDispatch();
+    const { stats } = useSelector(state => state.dashboardStats);
+
+    useEffect(() => {
+        dispatch(fetchDashboardStats());
+    }, [dispatch]);
+
+    console.log('Dashboard stats:', stats);
+
     // Sample data for charts
     const salesData = [
         { name: 'T2', sales: 15000000, orders: 45 },
@@ -58,73 +69,150 @@ const DashboardPage = () => {
         return new Intl.NumberFormat('vi-VN').format(num);
     };
 
+    // const stats = {
+    //     orders: {
+    //         total: 2,
+    //         thisMonth: 2,
+    //         lastMonth: 0,
+    //         percent: 100
+    //     },
+    //     products: {
+    //         total: 19,
+    //         thisMonth: 19,
+    //         lastMonth: 0,
+    //         percent: 100
+    //     },
+    //     users: {
+    //         total: 3,
+    //         thisMonth: 2,
+    //         lastMonth: 1,
+    //         percent: 100
+    //     },
+    //     revenue: {
+    //         total: 139500,
+    //         thisMonth: 139500,
+    //         lastMonth: 0,
+    //         percent: 100
+    //     }
+    // };
+
+    const renderPercent = (percent) => {
+        if (percent > 0) return `+${percent}% từ tháng trước`;
+        if (percent < 0) return `-${Math.abs(percent)}% từ tháng trước`;
+        return `0% từ tháng trước`;
+    };
+
     return (
         <div className="space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-600">Tổng đơn hàng</p>
-                            <p className="text-3xl font-bold text-gray-900">1,234</p>
-                            <div className="flex items-center mt-2">
-                                <ArrowUpIcon className="w-4 h-4 text-green-500 mr-1" />
-                                <span className="text-sm text-green-600">+12% từ tháng trước</span>
+                {stats ? (
+                    <>
+                        {/* Orders */}
+                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600">Tổng đơn hàng</p>
+                                    <p className="text-3xl font-bold text-gray-900">{stats?.orders?.total}</p>
+                                    <p className="text-sm text-gray-500 mt-1">Tháng này: {stats?.orders?.thisMonth}</p>
+                                    <p className="text-sm text-gray-500">Tháng trước: {stats?.orders?.lastMonth}</p>
+                                    <div className="flex items-center mt-2">
+                                        {stats.orders.percent >= 0 ? (
+                                            <ArrowUpIcon className="w-4 h-4 text-green-500 mr-1" />
+                                        ) : (
+                                            <ArrowDownIcon className="w-4 h-4 text-red-500 mr-1" />
+                                        )}
+                                        <span className={`text-sm ${stats?.orders?.percent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                            {renderPercent(stats?.orders?.percent)}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <ShoppingBagIcon className="w-6 h-6 text-blue-600" />
+                                </div>
                             </div>
                         </div>
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <ShoppingBagIcon className="w-6 h-6 text-blue-600" />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-600">Sản phẩm</p>
-                            <p className="text-3xl font-bold text-gray-900">567</p>
-                            <div className="flex items-center mt-2">
-                                <ArrowUpIcon className="w-4 h-4 text-green-500 mr-1" />
-                                <span className="text-sm text-green-600">+5% từ tháng trước</span>
+                        {/* Products */}
+                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600">Sản phẩm</p>
+                                    <p className="text-3xl font-bold text-gray-900">{stats?.products?.total}</p>
+                                    <p className="text-sm text-gray-500 mt-1">Tháng này: {stats?.products?.thisMonth}</p>
+                                    <p className="text-sm text-gray-500">Tháng trước: {stats?.products?.lastMonth}</p>
+                                    <div className="flex items-center mt-2">
+                                        {stats?.products?.percent >= 0 ? (
+                                            <ArrowUpIcon className="w-4 h-4 text-green-500 mr-1" />
+                                        ) : (
+                                            <ArrowDownIcon className="w-4 h-4 text-red-500 mr-1" />
+                                        )}
+                                        <span className={`text-sm ${stats?.products?.percent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                            {renderPercent(stats?.products?.percent)}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <CubeIcon className="w-6 h-6 text-green-600" />
+                                </div>
                             </div>
                         </div>
-                        <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                            <CubeIcon className="w-6 h-6 text-green-600" />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-600">Người dùng</p>
-                            <p className="text-3xl font-bold text-gray-900">890</p>
-                            <div className="flex items-center mt-2">
-                                <ArrowUpIcon className="w-4 h-4 text-green-500 mr-1" />
-                                <span className="text-sm text-green-600">+8% từ tháng trước</span>
+                        {/* Users */}
+                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600">Người dùng</p>
+                                    <p className="text-3xl font-bold text-gray-900">{stats?.users?.total}</p>
+                                    <p className="text-sm text-gray-500 mt-1">Tháng này: {stats?.users?.thisMonth}</p>
+                                    <p className="text-sm text-gray-500">Tháng trước: {stats?.users?.lastMonth}</p>
+                                    <div className="flex items-center mt-2">
+                                        {stats?.users?.percent >= 0 ? (
+                                            <ArrowUpIcon className="w-4 h-4 text-green-500 mr-1" />
+                                        ) : (
+                                            <ArrowDownIcon className="w-4 h-4 text-red-500 mr-1" />
+                                        )}
+                                        <span className={`text-sm ${stats?.users?.percent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                            {renderPercent(stats.users.percent)}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <UsersIcon className="w-6 h-6 text-purple-600" />
+                                </div>
                             </div>
                         </div>
-                        <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <UsersIcon className="w-6 h-6 text-purple-600" />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-600">Doanh thu</p>
-                            <p className="text-3xl font-bold text-gray-900">₫198M</p>
-                            <div className="flex items-center mt-2">
-                                <ArrowUpIcon className="w-4 h-4 text-green-500 mr-1" />
-                                <span className="text-sm text-green-600">+15% từ tháng trước</span>
+                        {/* Revenue */}
+                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600">Doanh thu</p>
+                                    <p className="text-3xl font-bold text-gray-900">{formatCurrency(stats?.revenue?.total)}</p>
+                                    <p className="text-sm text-gray-500 mt-1">Tháng này: {formatCurrency(stats?.revenue?.thisMonth)}</p>
+                                    <p className="text-sm text-gray-500">Tháng trước: {formatCurrency(stats?.revenue?.lastMonth)}</p>
+                                    <div className="flex items-center mt-2">
+                                        {stats?.revenue?.percent >= 0 ? (
+                                            <ArrowUpIcon className="w-4 h-4 text-green-500 mr-1" />
+                                        ) : (
+                                            <ArrowDownIcon className="w-4 h-4 text-red-500 mr-1" />
+                                        )}
+                                        <span className={`text-sm ${stats?.revenue?.percent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                            {renderPercent(stats?.revenue?.percent)}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                                    <ChartBarIcon className="w-6 h-6 text-orange-600" />
+                                </div>
                             </div>
                         </div>
-                        <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                            <ChartBarIcon className="w-6 h-6 text-orange-600" />
-                        </div>
-                    </div>
-                </div>
+                    </>
+                ) : (
+                    <>
+                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-pulse h-40" />
+                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-pulse h-40" />
+                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-pulse h-40" />
+                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-pulse h-40" />
+                    </>
+                )}
             </div>
 
             {/* Charts Section */}

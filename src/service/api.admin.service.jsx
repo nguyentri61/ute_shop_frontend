@@ -11,7 +11,14 @@ const updateOrderStatusAdmin = (orderId, status) => {
   return axios.put(API, { status });
 };
 
+const getDashboardStats = () => {
+  const API = "/admin/dashboard/stats";
+  return axios.get(API);
+}
+
+
 export {
   getAllOrders,
   updateOrderStatusAdmin,
+  getDashboardStats
 };

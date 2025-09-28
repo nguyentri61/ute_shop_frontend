@@ -12,6 +12,7 @@ import couponsReducer from './features/products/couponSlice';
 import favoriteReducer from './features/products/favoriteSlice';
 import recentlyViewedReducer from './features/products/recentlyViewedSlice';
 import similarProductsReducer from './features/products/similarProductsSlice';
+import dashboardStatsReducer from './features/admin/dashboardStatsSlice';
 
 
 export const store = configureStore({
@@ -29,5 +30,6 @@ export const store = configureStore({
         favorite: favoriteReducer,
         recentlyViewed: recentlyViewedReducer,
         similarProducts: similarProductsReducer,
+        dashboardStats: dashboardStatsReducer,
     },
 });

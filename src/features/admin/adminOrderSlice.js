@@ -1,4 +1,3 @@
-// src/features/admin/adminOrderSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { getAllOrders, updateOrderStatusAdmin } from "../../service/api.admin.service";
 
