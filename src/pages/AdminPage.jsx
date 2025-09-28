@@ -26,6 +26,7 @@ import { logout } from "../features/auth/loginSlice";
 import { Avatar } from "antd";
 import { LogOut } from "lucide-react";
 import NotificationBell from "../components/NotificationBell";
+import DashboardPage from "../components/admin/DashBoard";
 
 const AdminPage = () => {
   const dispatch = useDispatch();
@@ -66,9 +67,8 @@ const AdminPage = () => {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex h-full flex-col">
           {/* Logo */}
@@ -100,17 +100,15 @@ const AdminPage = () => {
                     setActiveTab(item.id);
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                    isActive
-                      ? "bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                  }`}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${isActive
+                    ? "bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    }`}
                 >
                   <div className="flex items-center space-x-3">
                     <Icon
-                      className={`w-5 h-5 ${
-                        isActive ? "text-indigo-500" : "text-gray-400"
-                      }`}
+                      className={`w-5 h-5 ${isActive ? "text-indigo-500" : "text-gray-400"
+                        }`}
                     />
                     <span>{item.label}</span>
                   </div>
@@ -233,109 +231,23 @@ const AdminPage = () => {
 
         {/* Main content area */}
         <main className="p-6">
-          <div className="mx-auto">
-            {/* Stats cards */}
-            {activeTab === "dashboard" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">
-                        Tổng đơn hàng
-                      </p>
-                      <p className="text-3xl font-bold text-gray-900">1,234</p>
-                      <p className="text-sm text-green-600">
-                        +12% từ tháng trước
-                      </p>
-                    </div>
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <ShoppingBagIcon className="w-6 h-6 text-blue-600" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">
-                        Sản phẩm
-                      </p>
-                      <p className="text-3xl font-bold text-gray-900">567</p>
-                      <p className="text-sm text-green-600">
-                        +5% từ tháng trước
-                      </p>
-                    </div>
-                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                      <CubeIcon className="w-6 h-6 text-green-600" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">
-                        Người dùng
-                      </p>
-                      <p className="text-3xl font-bold text-gray-900">890</p>
-                      <p className="text-sm text-green-600">
-                        +8% từ tháng trước
-                      </p>
-                    </div>
-                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <UsersIcon className="w-6 h-6 text-purple-600" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">
-                        Doanh thu
-                      </p>
-                      <p className="text-3xl font-bold text-gray-900">₫125M</p>
-                      <p className="text-sm text-green-600">
-                        +15% từ tháng trước
-                      </p>
-                    </div>
-                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                      <ChartBarIcon className="w-6 h-6 text-orange-600" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Tab content */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-              {activeTab === "dashboard" && (
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">
-                    Dashboard Overview
-                  </h3>
-                  <p className="text-gray-600">
-                    Chào mừng bạn đến với trang quản trị. Chọn một mục từ menu
-                    để bắt đầu.
-                  </p>
-                </div>
-              )}
-              {activeTab === "orders" && <AdminOrderList />}
-              {activeTab === "products" && <AdminProductList />}
-              {activeTab === "users" && <AdminUserList />}
-              {activeTab === "categories" && <AdminCategoryList />}
-              {activeTab === "settings" && (
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">
-                    Cài đặt hệ thống
-                  </h3>
-                  <p className="text-gray-600">
-                    Trang cài đặt đang được phát triển.
-                  </p>
-                </div>
-              )}
+          {activeTab === "dashboard" && (
+            <DashboardPage />
+          )}
+          {activeTab === "orders" && <AdminOrderList />}
+          {activeTab === "products" && <AdminProductList />}
+          {activeTab === "users" && <AdminUserList />}
+          {activeTab === "categories" && <AdminCategoryList />}
+          {activeTab === "settings" && (
+            <div className="p-6">
+              <h3 className="text-lg font-semibold mb-4">
+                Cài đặt hệ thống
+              </h3>
+              <p className="text-gray-600">
+                Trang cài đặt đang được phát triển.
+              </p>
             </div>
-          </div>
+          )}
         </main>
       </div>
 
