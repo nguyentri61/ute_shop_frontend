@@ -1,3 +1,4 @@
+// src/pages/admin/DashboardPage.jsx
 import React, { useEffect } from 'react';
 import {
     ShoppingBagIcon,
@@ -8,23 +9,30 @@ import {
     ArrowDownIcon,
 } from '@heroicons/react/24/outline';
 import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell
+    ResponsiveContainer,
+    AreaChart, Area,
+    CartesianGrid, XAxis, YAxis, Tooltip,
+    PieChart, Pie, Cell
 } from 'recharts';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchDashboardStats } from '../../features/admin/dashboardStatsSlice';
+import { fetchBestSellingProducts } from '../../features/products/productSlice';
 
 const DashboardPage = () => {
     const dispatch = useDispatch();
-    const { stats } = useSelector(state => state.dashboardStats);
+
+    const { stats } = useSelector((state) => state.dashboardStats);
+    const {
+        bestSelling,
+        loading: productLoading,
+        error: productError,
+    } = useSelector((state) => state.product);
 
     useEffect(() => {
         dispatch(fetchDashboardStats());
+        dispatch(fetchBestSellingProducts());
     }, [dispatch]);
 
-    console.log('Dashboard stats:', stats);
-
-    // Sample data for charts
     const salesData = [
         { name: 'T2', sales: 15000000, orders: 45 },
         { name: 'T3', sales: 22000000, orders: 67 },
@@ -50,51 +58,11 @@ const DashboardPage = () => {
         { id: 5, action: 'Đánh giá mới', detail: '5 sao cho AirPods Pro', time: '25 phút trước', type: 'review' }
     ];
 
-    const topProducts = [
-        { id: 1, name: 'iPhone 15 Pro Max', sold: 156, revenue: 468000000, trend: 'up' },
-        { id: 2, name: 'Samsung Galaxy S24', sold: 134, revenue: 335000000, trend: 'up' },
-        { id: 3, name: 'MacBook Air M3', sold: 89, revenue: 267000000, trend: 'down' },
-        { id: 4, name: 'iPad Pro 2024', sold: 67, revenue: 167500000, trend: 'up' },
-        { id: 5, name: 'AirPods Pro 2', sold: 234, revenue: 117000000, trend: 'up' }
-    ];
+    const formatCurrency = (amount) =>
+        new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount ?? 0);
 
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND'
-        }).format(amount);
-    };
-
-    const formatNumber = (num) => {
-        return new Intl.NumberFormat('vi-VN').format(num);
-    };
-
-    // const stats = {
-    //     orders: {
-    //         total: 2,
-    //         thisMonth: 2,
-    //         lastMonth: 0,
-    //         percent: 100
-    //     },
-    //     products: {
-    //         total: 19,
-    //         thisMonth: 19,
-    //         lastMonth: 0,
-    //         percent: 100
-    //     },
-    //     users: {
-    //         total: 3,
-    //         thisMonth: 2,
-    //         lastMonth: 1,
-    //         percent: 100
-    //     },
-    //     revenue: {
-    //         total: 139500,
-    //         thisMonth: 139500,
-    //         lastMonth: 0,
-    //         percent: 100
-    //     }
-    // };
+    const formatNumber = (num) =>
+        new Intl.NumberFormat('vi-VN').format(num ?? 0);
 
     const renderPercent = (percent) => {
         if (percent > 0) return `+${percent}% từ tháng trước`;
@@ -117,7 +85,7 @@ const DashboardPage = () => {
                                     <p className="text-sm text-gray-500 mt-1">Tháng này: {stats?.orders?.thisMonth}</p>
                                     <p className="text-sm text-gray-500">Tháng trước: {stats?.orders?.lastMonth}</p>
                                     <div className="flex items-center mt-2">
-                                        {stats.orders.percent >= 0 ? (
+                                        {stats?.orders?.percent >= 0 ? (
                                             <ArrowUpIcon className="w-4 h-4 text-green-500 mr-1" />
                                         ) : (
                                             <ArrowDownIcon className="w-4 h-4 text-red-500 mr-1" />
@@ -132,6 +100,7 @@ const DashboardPage = () => {
                                 </div>
                             </div>
                         </div>
+
                         {/* Products */}
                         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
                             <div className="flex items-center justify-between">
@@ -156,6 +125,7 @@ const DashboardPage = () => {
                                 </div>
                             </div>
                         </div>
+
                         {/* Users */}
                         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
                             <div className="flex items-center justify-between">
@@ -171,7 +141,7 @@ const DashboardPage = () => {
                                             <ArrowDownIcon className="w-4 h-4 text-red-500 mr-1" />
                                         )}
                                         <span className={`text-sm ${stats?.users?.percent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                            {renderPercent(stats.users.percent)}
+                                            {renderPercent(stats?.users?.percent)}
                                         </span>
                                     </div>
                                 </div>
@@ -180,6 +150,7 @@ const DashboardPage = () => {
                                 </div>
                             </div>
                         </div>
+
                         {/* Revenue */}
                         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
                             <div className="flex items-center justify-between">
@@ -234,16 +205,8 @@ const DashboardPage = () => {
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="name" />
                                 <YAxis />
-                                <Tooltip
-                                    formatter={(value) => [formatCurrency(value), 'Doanh thu']}
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="sales"
-                                    stroke="#6366f1"
-                                    fill="#6366f1"
-                                    fillOpacity={0.1}
-                                />
+                                <Tooltip formatter={(value) => [formatCurrency(value), 'Doanh thu']} />
+                                <Area type="monotone" dataKey="sales" stroke="#6366f1" fill="#6366f1" fillOpacity={0.1} />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -281,34 +244,86 @@ const DashboardPage = () => {
                 {/* Top Products */}
                 <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                     <h3 className="text-lg font-semibold text-gray-900 mb-6">Sản phẩm bán chạy</h3>
-                    <div className="space-y-4">
-                        {topProducts.map((product, index) => (
-                            <div key={product.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                                <div className="flex items-center space-x-4">
-                                    <div className="w-8 h-8 bg-indigo-100 text-indigo-800 rounded-full flex items-center justify-center font-bold text-sm">
-                                        {index + 1}
+
+                    {productError && (
+                        <div className="p-3 mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded">
+                            Không tải được danh sách: {String(productError)}
+                        </div>
+                    )}
+
+                    {productLoading ? (
+                        <div className="space-y-3">
+                            {[...Array(5)].map((_, i) => (
+                                <div key={i} className="h-16 bg-gray-100 rounded animate-pulse" />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {(bestSelling ?? []).map((product, index) => (
+                                <div
+                                    key={product.id ?? index}
+                                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                >
+                                    <div className="flex items-center space-x-4">
+                                        <div className="w-8 h-8 bg-indigo-100 text-indigo-800 rounded-full flex items-center justify-center font-bold text-sm">
+                                            {index + 1}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-medium text-gray-900">
+                                                {product.name ?? product.productName ?? 'Sản phẩm'}
+                                            </h4>
+                                            <p className="text-sm text-gray-600">
+                                                {formatNumber(product.sold ?? product.totalSold ?? 0)} đã bán
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h4 className="font-medium text-gray-900">{product.name}</h4>
-                                        <p className="text-sm text-gray-600">{formatNumber(product.sold)} đã bán</p>
+                                    <div className="text-right">
+                                        <p className="font-semibold text-gray-900">
+                                            {formatCurrency(product.variantDiscountPrice ?? 0)}
+                                        </p>
+                                        {/* Giá giảm (thay cho khối xu hướng) */}
+                                        <div className="flex items-center justify-end mt-1">
+                                            {(() => {
+                                                // Ưu tiên dùng giá KM (sale) nếu có, rồi đến giá thường (base)
+                                                const sale =
+                                                    product?.variantDiscountPrice ??
+                                                    product?.discountPrice ??
+                                                    product?.variantPrice ?? // fallback nếu không có discount
+                                                    product?.price ?? 0;
+
+                                                const base =
+                                                    product?.variantPrice ??
+                                                    product?.price ??
+                                                    product?.variantDiscountPrice ?? // fallback cực đoan
+                                                    product?.discountPrice ?? 0;
+
+                                                const hasDiscount = sale > 0 && base > 0 && sale < base;
+                                                const percent = hasDiscount ? Math.round(((base - sale) / base) * 100) : 0;
+
+                                                return hasDiscount ? (
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs line-through text-gray-400">
+                                                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(base)}
+                                                        </span>
+                                                        <span className="text-xs px-1.5 py-0.5 rounded bg-red-50 text-red-600 border border-red-200">
+                                                            -{percent}%
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-sm text-gray-500">—</span>
+                                                );
+                                            })()}
+                                        </div>
+
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <p className="font-semibold text-gray-900">{formatCurrency(product.revenue)}</p>
-                                    <div className="flex items-center justify-end mt-1">
-                                        {product.trend === 'up' ? (
-                                            <ArrowUpIcon className="w-3 h-3 text-green-500 mr-1" />
-                                        ) : (
-                                            <ArrowDownIcon className="w-3 h-3 text-red-500 mr-1" />
-                                        )}
-                                        <span className={`text-sm ${product.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                                            Xu hướng
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+
+                            {(!bestSelling || bestSelling.length === 0) && (
+                                <div className="text-sm text-gray-500">Chưa có dữ liệu sản phẩm bán chạy.</div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Recent Activity */}
@@ -317,16 +332,27 @@ const DashboardPage = () => {
                     <div className="space-y-4">
                         {recentActivity.map((activity) => (
                             <div key={activity.id} className="flex items-start space-x-3">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${activity.type === 'order' ? 'bg-blue-100 text-blue-800' :
-                                    activity.type === 'warning' ? 'bg-yellow-100 text-yellow-800' :
-                                        activity.type === 'user' ? 'bg-green-100 text-green-800' :
-                                            activity.type === 'payment' ? 'bg-purple-100 text-purple-800' :
-                                                'bg-gray-100 text-gray-800'
-                                    }`}>
-                                    {activity.type === 'order' ? '📦' :
-                                        activity.type === 'warning' ? '⚠️' :
-                                            activity.type === 'user' ? '👤' :
-                                                activity.type === 'payment' ? '💳' : '⭐'}
+                                <div
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${activity.type === 'order'
+                                        ? 'bg-blue-100 text-blue-800'
+                                        : activity.type === 'warning'
+                                            ? 'bg-yellow-100 text-yellow-800'
+                                            : activity.type === 'user'
+                                                ? 'bg-green-100 text-green-800'
+                                                : activity.type === 'payment'
+                                                    ? 'bg-purple-100 text-purple-800'
+                                                    : 'bg-gray-100 text-gray-800'
+                                        }`}
+                                >
+                                    {activity.type === 'order'
+                                        ? '📦'
+                                        : activity.type === 'warning'
+                                            ? '⚠️'
+                                            : activity.type === 'user'
+                                                ? '👤'
+                                                : activity.type === 'payment'
+                                                    ? '💳'
+                                                    : '⭐'}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-gray-900">{activity.action}</p>
