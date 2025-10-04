@@ -24,16 +24,26 @@ export default function MyOrdersPage() {
   const [cancellingId, setCancellingId] = useState(null);
   const [activeStatus, setActiveStatus] = useState("ALL");
 
+  // Phân trang
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const LIMIT = 5; // tùy chỉnh theo ý bạn
+
   useEffect(() => {
-    loadOrders();
+    loadOrders(activeStatus, page);
+    // eslint-disable-next-line
   }, []);
 
-  async function loadOrders() {
+  async function loadOrders(status = "ALL", pageNum = 1) {
     setLoading(true);
     try {
-      const res = await getMyOrders();
-      setOrders(res.data ?? []);
-    } catch {
+      const res = await getMyOrders(status, pageNum, LIMIT);
+      // Backend trả về { data, currentPage, totalPages, totalItems }
+      const result = res.data;
+      setOrders(result?.data || []);
+      setTotalPages(result?.totalPages || 1);
+      setError(null);
+    } catch (err) {
       setError("Có lỗi khi tải đơn hàng.");
     } finally {
       setLoading(false);
@@ -64,11 +74,6 @@ export default function MyOrdersPage() {
     }
   }
 
-  const filteredOrders =
-    activeStatus === "ALL"
-      ? orders
-      : orders.filter((o) => o.status === activeStatus);
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64 text-gray-600">
@@ -80,7 +85,6 @@ export default function MyOrdersPage() {
 
   return (
     <div className="max-w-5xl mx-auto p-4 bg-gray-50 min-h-screen">
-      {/* Header */}
       <h1 className="text-2xl font-semibold text-gray-800 mb-4">
         Đơn hàng của tôi
       </h1>
@@ -90,10 +94,14 @@ export default function MyOrdersPage() {
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActiveStatus(tab.key)}
+            onClick={() => {
+              setActiveStatus(tab.key);
+              setPage(1);
+              loadOrders(tab.key, 1);
+            }}
             className={`whitespace-nowrap pb-2 border-b-2 text-sm font-medium transition-colors ${activeStatus === tab.key
-                ? "border-orange-500 text-orange-600"
-                : "border-transparent text-gray-600 hover:text-orange-500"
+              ? "border-orange-500 text-orange-600"
+              : "border-transparent text-gray-600 hover:text-orange-500"
               }`}
           >
             {tab.label}
@@ -103,13 +111,13 @@ export default function MyOrdersPage() {
 
       {error && <p className="text-red-600">{error}</p>}
 
-      {filteredOrders.length === 0 ? (
+      {orders.length === 0 ? (
         <p className="text-gray-600 mt-10 text-center">
           Không có đơn hàng nào.
         </p>
       ) : (
         <div className="space-y-4">
-          {filteredOrders.map((order) => (
+          {orders.map((order) => (
             <OrderCard
               key={order.id}
               order={order}
@@ -125,6 +133,56 @@ export default function MyOrdersPage() {
           ))}
         </div>
       )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-6 flex-wrap">
+          {/* Previous */}
+          <button
+            disabled={page === 1}
+            onClick={() => {
+              const newPage = page - 1;
+              setPage(newPage);
+              loadOrders(activeStatus, newPage);
+            }}
+            className="w-10 h-10 flex justify-center items-center rounded-full border border-gray-300 text-gray-500 hover:bg-orange-100 hover:text-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            «
+          </button>
+
+          {/* Page numbers */}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            <button
+              key={p}
+              onClick={() => {
+                setPage(p);
+                loadOrders(activeStatus, p);
+              }}
+              className={`w-10 h-10 flex justify-center items-center rounded-full border transition ${page === p
+                  ? "bg-orange-500 text-white border-orange-500 shadow"
+                  : "border-gray-300 text-gray-600 hover:bg-orange-50 hover:text-orange-600"
+                }`}
+            >
+              {p}
+            </button>
+          ))}
+
+          {/* Next */}
+          <button
+            disabled={page === totalPages}
+            onClick={() => {
+              const newPage = page + 1;
+              setPage(newPage);
+              loadOrders(activeStatus, newPage);
+            }}
+            className="w-10 h-10 flex justify-center items-center rounded-full border border-gray-300 text-gray-500 hover:bg-orange-100 hover:text-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            »
+          </button>
+        </div>
+      )}
+
+
     </div>
   );
 }

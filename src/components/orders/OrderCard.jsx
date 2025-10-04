@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import {
-  computeOrderTotal,
   totalItemsCount,
   formatCurrency,
   formatDate,
@@ -34,7 +33,8 @@ export default function OrderCard({
   onCancel,
   cancellingId,
 }) {
-  const total = computeOrderTotal(order);
+  const total = order.total;
+
   const itemCount = totalItemsCount(order);
   const statusText = STATUS_LABELS[order.status] || order.status;
   const shortId = order.id.slice(0, 8).toUpperCase();
