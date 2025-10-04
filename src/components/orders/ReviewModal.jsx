@@ -24,9 +24,8 @@ export default function ReviewModal({ isOpen, onClose, onSubmit, product }) {
   if (!isOpen) return null;
   const StarIcon = ({ filled, onClick, onMouseEnter, onMouseLeave }) => (
     <svg
-      className={`w-8 h-8 cursor-pointer transition-all duration-200 transform hover:scale-110 ${
-        filled ? "text-yellow-400" : "text-gray-300"
-      }`}
+      className={`w-8 h-8 cursor-pointer transition-all duration-200 transform hover:scale-110 ${filled ? "text-yellow-400" : "text-gray-300"
+        }`}
       fill="currentColor"
       viewBox="0 0 20 20"
       onClick={onClick}
@@ -81,17 +80,21 @@ export default function ReviewModal({ isOpen, onClose, onSubmit, product }) {
           <label className="block text-sm font-semibold text-gray-700 mb-3">
             Đánh giá của bạn
           </label>
-          <div className="flex justify-center items-center gap-2 mb-4">
+          <div
+            className={`flex justify-center items-center gap-2 mb-4 ${isSent ? "pointer-events-none opacity-60" : ""
+              }`}
+          >
             {[1, 2, 3, 4, 5].map((star) => (
               <StarIcon
                 key={star}
                 filled={star <= (hoveredRating || rating)}
-                onClick={() => setRating(star)}
-                onMouseEnter={() => setHoveredRating(star)}
-                onMouseLeave={() => setHoveredRating(0)}
+                onClick={() => !isSent && setRating(star)}
+                onMouseEnter={() => !isSent && setHoveredRating(star)}
+                onMouseLeave={() => !isSent && setHoveredRating(0)}
               />
             ))}
           </div>
+
           <div className="text-center">
             <span className="inline-block px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 rounded-full font-medium">
               {getRatingText(hoveredRating || rating)}
@@ -110,6 +113,7 @@ export default function ReviewModal({ isOpen, onClose, onSubmit, product }) {
             placeholder="Hãy chia sẻ trải nghiệm của bạn về sản phẩm này..."
             value={comment}
             onChange={(e) => setComment(e.target.value)}
+            disabled={isSent}
           />
           <div className="text-right mt-2">
             <span className="text-xs text-gray-500">{comment.length}/500</span>

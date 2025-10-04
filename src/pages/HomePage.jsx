@@ -19,6 +19,8 @@ import {
     fetchAllCategories
 } from "../features/products/categorySlice"
 
+import { fetchFavorites } from "../features/products/favoriteSlice";
+
 export default function Home() {
     const dispatch = useDispatch();
 
@@ -44,6 +46,12 @@ export default function Home() {
         dispatch(fetchTopDiscountProducts());
     }, [dispatch]);
 
+    const { favorites } = useSelector((state) => state.favorite);
+
+    useEffect(() => {
+        dispatch(fetchFavorites());
+    }, [dispatch]);
+
     const handlePageChange = (page) => {
         dispatch(fetchPaginatedProducts({ page, limit: pagination.limit || 8 }));
     };
@@ -55,10 +63,12 @@ export default function Home() {
             <Category categories={allCategories || []} />
 
             <div className="max-w-[1200px] mx-auto p-6">
-                <ProductSection title="08 Sản phẩm mới nhất" products={newest} columns={4} />
-                <ProductSection title="06 Sản phẩm bán chạy nhất" products={bestSelling} columns={3} />
-                <ProductSection title="08 Sản phẩm được xem nhiều nhất" products={mostViewed} columns={4} />
-                <ProductSection title="04 Sản phẩm khuyến mãi cao nhất" products={topDiscount} columns={4} />
+                <ProductSection title="Sản phẩm mới nhất" products={newest} columns={4} />
+                <ProductSection title="Sản phẩm bán chạy nhất" products={bestSelling} columns={3} />
+                <ProductSection title="Sản phẩm được xem nhiều nhất" products={mostViewed} columns={4} />
+                <ProductSection title="Sản phẩm khuyến mãi cao nhất" products={topDiscount} columns={4} />
+                <ProductSection title="Sản phẩm yêu thích" products={favorites} columns={4} />
+                
             </div>
 
             <div className="max-w-[1200px] mx-auto">
