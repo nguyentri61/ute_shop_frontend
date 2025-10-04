@@ -43,8 +43,8 @@ export default function FilterSidebar({ categories = [], filters, setFilters }) 
                             key={cat.id}
                             onClick={() => handleCategoryChange(cat.id)}
                             className={`cursor-pointer hover:text-indigo-600 ${String(filters.categoryId) === String(cat.id)
-                                    ? "text-indigo-600 font-semibold"
-                                    : "text-gray-700"
+                                ? "text-indigo-600 font-semibold"
+                                : "text-gray-700"
                                 }`}
                         >
                             {cat.name}
@@ -95,6 +95,8 @@ export default function FilterSidebar({ categories = [], filters, setFilters }) 
                 <div className="flex items-center gap-2">
                     <input
                         type="number"
+                        min={0}
+                        step={100000}
                         placeholder="Từ"
                         className="border rounded-lg p-2 w-1/2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
                         onChange={(e) => handlePriceChange("minPrice", Number(e.target.value))}
@@ -102,6 +104,8 @@ export default function FilterSidebar({ categories = [], filters, setFilters }) 
                     <span className="text-gray-500">-</span>
                     <input
                         type="number"
+                        min={0}
+                        step={100000}
                         placeholder="Đến"
                         className="border rounded-lg p-2 w-1/2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
                         onChange={(e) => handlePriceChange("maxPrice", Number(e.target.value))}

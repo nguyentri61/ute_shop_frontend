@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProductsByFilter } from "../features/products/productSlice";
+import { fetchPaginatedProducts, fetchProductsByFilter } from "../features/products/productSlice";
 import { fetchAllCategories } from "../features/products/categorySlice";
 
 import FilterSidebar from "../components/FilterSidebar";
