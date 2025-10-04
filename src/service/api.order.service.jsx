@@ -1,11 +1,11 @@
 // src/services/api.order.service.jsx
 import axios from "./axios.customize";
 
-const getMyOrders = () => {
-    const API = "/orders/my-orders"; // chỉnh nếu backend của bạn khác
-    return axios.get(API);
+const getMyOrders = (status = "ALL", page = 1, limit = 5) => {
+    return axios.get(
+        `/orders/my-orders?status=${status}&page=${page}&limit=${limit}`
+    );
 };
-
 const getOrderById = (orderId) => {
     const API = `/orders/${orderId}`;
     return axios.get(API);

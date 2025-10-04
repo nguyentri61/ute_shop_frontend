@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  getMyOrders,
-  cancelOrder as apiCancelOrder,
-} from "../service/api.order.service";
+import { getMyOrders, cancelOrder as apiCancelOrder } from "../service/api.order.service";
 import OrderCard from "../components/orders/OrderCard";
 import { showError } from "../utils/toast";
 
@@ -24,16 +21,25 @@ export default function MyOrdersPage() {
   const [cancellingId, setCancellingId] = useState(null);
   const [activeStatus, setActiveStatus] = useState("ALL");
 
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const LIMIT = 5;
+
   useEffect(() => {
-    loadOrders();
+    loadOrders(activeStatus, page);
+    // eslint-disable-next-line
   }, []);
 
-  async function loadOrders() {
+  async function loadOrders(status = "ALL", pageNum = 1) {
     setLoading(true);
     try {
-      const res = await getMyOrders();
-      setOrders(res.data ?? []);
-    } catch {
+      const res = await getMyOrders(status, pageNum, LIMIT);
+      const result = res.data;
+      setOrders(result?.data || []);
+      setTotalPages(result?.totalPages || 1);
+      setError(null);
+    } catch (err) {
       setError("Có lỗi khi tải đơn hàng.");
     } finally {
       setLoading(false);
@@ -48,7 +54,7 @@ export default function MyOrdersPage() {
       setOrders((prev) =>
         prev.map((o) => {
           if (o.id === orderId) {
-            if (o.status === "PENDING" || o.status === "CONFIRMED") {
+            if (o.status === "NEW" || o.status === "CONFIRMED" || o.status === "PREPARING") {
               return { ...o, status: "CANCELLED" };
             } else {
               return { ...o, status: "CANCEL_REQUEST" };
@@ -64,11 +70,6 @@ export default function MyOrdersPage() {
     }
   }
 
-  const filteredOrders =
-    activeStatus === "ALL"
-      ? orders
-      : orders.filter((o) => o.status === activeStatus);
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64 text-gray-600">
@@ -80,20 +81,21 @@ export default function MyOrdersPage() {
 
   return (
     <div className="max-w-5xl mx-auto p-4 bg-gray-50 min-h-screen">
-      {/* Header */}
-      <h1 className="text-2xl font-semibold text-gray-800 mb-4">
-        Đơn hàng của tôi
-      </h1>
+      <h1 className="text-2xl font-semibold text-gray-800 mb-6">Đơn hàng của tôi</h1>
 
       {/* Tabs filter */}
-      <div className="flex gap-4 mb-6 overflow-x-auto">
+      <div className="flex gap-2 overflow-x-auto mb-6 pb-1">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActiveStatus(tab.key)}
-            className={`whitespace-nowrap pb-2 border-b-2 text-sm font-medium transition-colors ${activeStatus === tab.key
-                ? "border-orange-500 text-orange-600"
-                : "border-transparent text-gray-600 hover:text-orange-500"
+            onClick={() => {
+              setActiveStatus(tab.key);
+              setPage(1);
+              loadOrders(tab.key, 1);
+            }}
+            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeStatus === tab.key
+              ? "bg-orange-500 text-white shadow-md"
+              : "bg-white text-gray-600 border border-gray-200 hover:bg-orange-50 hover:text-orange-600"
               }`}
           >
             {tab.label}
@@ -101,28 +103,69 @@ export default function MyOrdersPage() {
         ))}
       </div>
 
-      {error && <p className="text-red-600">{error}</p>}
+      {error && <p className="text-red-600 mb-4">{error}</p>}
 
-      {filteredOrders.length === 0 ? (
-        <p className="text-gray-600 mt-10 text-center">
-          Không có đơn hàng nào.
-        </p>
+      {orders.length === 0 ? (
+        <p className="text-gray-600 mt-10 text-center text-lg">Không có đơn hàng nào.</p>
       ) : (
         <div className="space-y-4">
-          {filteredOrders.map((order) => (
+          {orders.map((order) => (
             <OrderCard
               key={order.id}
               order={order}
               isExpanded={expandedOrderId === order.id}
               onToggleExpand={() =>
-                setExpandedOrderId(
-                  expandedOrderId === order.id ? null : order.id
-                )
+                setExpandedOrderId(expandedOrderId === order.id ? null : order.id)
               }
               onCancel={handleCancel}
               cancellingId={cancellingId}
             />
           ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-6 flex-wrap">
+          <button
+            disabled={page === 1}
+            onClick={() => {
+              const newPage = page - 1;
+              setPage(newPage);
+              loadOrders(activeStatus, newPage);
+            }}
+            className="w-10 h-10 flex justify-center items-center rounded-full border border-gray-300 text-gray-500 hover:bg-orange-100 hover:text-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            «
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            <button
+              key={p}
+              onClick={() => {
+                setPage(p);
+                loadOrders(activeStatus, p);
+              }}
+              className={`w-10 h-10 flex justify-center items-center rounded-full border transition ${page === p
+                ? "bg-orange-500 text-white border-orange-500 shadow-md"
+                : "border-gray-300 text-gray-600 hover:bg-orange-50 hover:text-orange-600"
+                }`}
+            >
+              {p}
+            </button>
+          ))}
+
+          <button
+            disabled={page === totalPages}
+            onClick={() => {
+              const newPage = page + 1;
+              setPage(newPage);
+              loadOrders(activeStatus, newPage);
+            }}
+            className="w-10 h-10 flex justify-center items-center rounded-full border border-gray-300 text-gray-500 hover:bg-orange-100 hover:text-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            »
+          </button>
         </div>
       )}
     </div>
