@@ -10,6 +10,7 @@ import Header from "./components/Header";
 import ErrorBoundary from "./components/ErrorBoundary";
 import ErrorPage from "./pages/ErrorPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
+import MyOrdersDetailPage from "./pages/MyOrdersDetailPage";
 import CheckOutPage from "./pages/CheckOutPage";
 import MyCartPage from "./pages/MyCartPage";
 import AdminPage from "./pages/AdminPage";
@@ -73,7 +74,10 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/products/:id" element={<ProductDetailPage />} />
-          <Route path="/categories/:categoryId" element={<ProductsByCategoryPage />} />
+          <Route
+            path="/categories/:categoryId"
+            element={<ProductsByCategoryPage />}
+          />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
@@ -82,6 +86,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/profile" element={<Profile />} />
             <Route path="/orders" element={<MyOrdersPage />} />
+            <Route path="/orders/:id" element={<MyOrdersDetailPage />} />
             <Route path="/checkout" element={<CheckOutPage />} />
             <Route path="/cart" element={<MyCartPage />} />
             <Route path="/favorites" element={<FavoritesPage />} />
