@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchPaginatedProducts, fetchProductsByFilter } from "../features/products/productSlice";
+import { fetchProductsByFilter } from "../features/products/productSlice";
 import { fetchAllCategories } from "../features/products/categorySlice";
 
 import FilterSidebar from "../components/FilterSidebar";
@@ -42,7 +42,7 @@ export default function ProductsPage() {
 
     const handlePageChange = (page) => {
         dispatch(
-            fetchPaginatedProducts({
+            fetchProductsByFilter({
                 page,
                 limit: pagination.limit || 8,
                 sort: filters.sortPrice || filters.sortDate,
