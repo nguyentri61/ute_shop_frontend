@@ -37,13 +37,13 @@ function ProtectedRoute() {
 // Layout component that includes Header and renders Outlet
 function Layout() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="pt-16">
         <Outlet />
       </main>
 
-      {/* Thêm Toaster ở đây để toast hiển thị cho toàn bộ app */}
+      {/* Toaster cho toàn bộ app */}
       <Toaster position="top-right" reverseOrder={false} />
     </div>
   );
@@ -52,7 +52,7 @@ function Layout() {
 // Auth layout for login/register pages without header
 function AuthLayout() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50">
       <Outlet />
       <Toaster position="top-right" reverseOrder={false} />
     </div>
@@ -60,7 +60,6 @@ function AuthLayout() {
 }
 
 function App() {
-
   const dispatch = useDispatch();
 
   useEffect(() => {
