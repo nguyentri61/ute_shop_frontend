@@ -47,8 +47,6 @@ export default function Home() {
     const handlePageChange = (page) => {
         dispatch(fetchPaginatedProducts({ page, limit: pagination.limit || 8 }));
     };
-
-    if (loading || loadingCate) return <p className="text-center mt-10">Đang tải dữ liệu...</p>;
     if (error || errorCate) return <p className="text-center mt-10 text-red-500">Lỗi: {error}</p>;
 
     return (

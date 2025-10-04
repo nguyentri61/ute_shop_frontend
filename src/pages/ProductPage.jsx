@@ -42,7 +42,7 @@ export default function ProductsPage() {
 
     const handlePageChange = (page) => {
         dispatch(
-            fetchPaginatedProducts({
+            fetchProductsByFilter({
                 page,
                 limit: pagination.limit || 8,
                 sort: filters.sortPrice || filters.sortDate,
