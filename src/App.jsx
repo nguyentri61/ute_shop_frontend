@@ -25,6 +25,7 @@ import { initAuthFromToken } from "./features/auth/loginSlice";
 import ProductsByCategoryPage from "./pages/ProductsByCategoryPage";
 import ProductsPage from "./pages/ProductPage";
 import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
 
 // Protected Route component
 function ProtectedRoute() {
@@ -76,6 +77,7 @@ function App() {
           <Route path="/categories/:categoryId" element={<ProductsByCategoryPage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
