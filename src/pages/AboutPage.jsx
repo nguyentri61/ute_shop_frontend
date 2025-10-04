@@ -1,25 +1,16 @@
 import React from "react";
 import Footer from "../components/Footer";
+import { FaGem, FaLock, FaHeadset, FaUsers } from "react-icons/fa";
+import Banner from "../components/Banner";
 
 export default function AboutPage() {
   return (
-    <div className="bg-gray-50 min-h-screen">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white py-16">
-        <div className="max-w-[1200px] mx-auto px-4 text-center">
-          <h1 className="text-4xl sm:text-5xl font-extrabold mb-4">
-            Chào mừng đến với <span className="text-yellow-300">UTE Shop</span>
-          </h1>
-          <p className="text-lg max-w-2xl mx-auto opacity-90">
-            Nền tảng mua sắm phụ kiện thời trang trực tuyến được phát triển bởi
-            sinh viên UTE — nơi mang đến trải nghiệm mua sắm tiện lợi, hiện đại
-            và bảo mật cho mọi người.
-          </p>
-        </div>
-      </section>
+    <div className="bg-gray-50 min-h-screen flex flex-col">
+      {/* Banner */}
+      <Banner />
 
       {/* Mission Section */}
-      <section className="max-w-[1200px] mx-auto px-4 py-16">
+      <section className="max-w-[1200px] mx-auto px-4 py-20">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-800 mb-4">
             Sứ mệnh của chúng tôi
@@ -27,36 +18,31 @@ export default function AboutPage() {
           <p className="text-gray-600 max-w-2xl mx-auto">
             UTE Shop ra đời với mục tiêu mang đến những sản phẩm phụ kiện thời
             trang chất lượng, giá cả hợp lý và dịch vụ chăm sóc khách hàng tận
-            tâm. Chúng tôi không chỉ tạo ra một website bán hàng, mà còn tạo ra
-            một hệ thống hoàn chỉnh cho sinh viên học tập và thực hành.
+            tâm.
           </p>
         </div>
 
         {/* Feature Highlights */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-10">
-          <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
-            <h3 className="text-xl font-semibold mb-2 text-center">
-              Chất lượng
-            </h3>
-            <p className="text-gray-600 text-center">
-              Sản phẩm được chọn lọc kỹ lưỡng, đảm bảo chất lượng cao và thông
-              tin rõ ràng.
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mt-10">
+          <div className="bg-white p-8 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition transform text-center">
+            <FaGem className="text-indigo-600 text-5xl mb-4 mx-auto" />
+            <h3 className="text-xl font-semibold mb-2">Chất lượng</h3>
+            <p className="text-gray-600">
+              Sản phẩm chọn lọc kỹ lưỡng, đảm bảo uy tín.
             </p>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
-            <h3 className="text-xl font-semibold mb-2 text-center">Bảo mật</h3>
-            <p className="text-gray-600 text-center">
-              UTE Shop áp dụng chuẩn bảo mật đảm bảo an toàn cho thông tin người
-              dùng.
+          <div className="bg-white p-8 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition transform text-center">
+            <FaLock className="text-indigo-600 text-5xl mb-4 mx-auto" />
+            <h3 className="text-xl font-semibold mb-2">Bảo mật</h3>
+            <p className="text-gray-600">
+              Chuẩn bảo mật hiện đại, bảo vệ thông tin người dùng.
             </p>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
-            <h3 className="text-xl font-semibold mb-2 text-center">
-              Hỗ trợ 24/7
-            </h3>
-            <p className="text-gray-600 text-center">
-              Đội ngũ sẵn sàng hỗ trợ khách hàng nhanh chóng qua nhiều kênh liên
-              lạc.
+          <div className="bg-white p-8 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition transform text-center">
+            <FaHeadset className="text-indigo-600 text-5xl mb-4 mx-auto" />
+            <h3 className="text-xl font-semibold mb-2">Hỗ trợ 24/7</h3>
+            <p className="text-gray-600">
+              Đội ngũ sẵn sàng hỗ trợ nhanh chóng, tận tâm.
             </p>
           </div>
         </div>
@@ -64,32 +50,32 @@ export default function AboutPage() {
 
       {/* Stats Section */}
       <section className="bg-white py-16">
-        <div className="max-w-[1000px] mx-auto grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
-          <div>
-            <h3 className="text-3xl font-bold text-indigo-600">1,200+</h3>
-            <p className="text-gray-600">Sản phẩm</p>
-          </div>
-          <div>
-            <h3 className="text-3xl font-bold text-indigo-600">5,000+</h3>
-            <p className="text-gray-600">Khách hàng</p>
-          </div>
-          <div>
-            <h3 className="text-3xl font-bold text-indigo-600">99.9%</h3>
-            <p className="text-gray-600">Uptime hệ thống</p>
-          </div>
-          <div>
-            <h3 className="text-3xl font-bold text-indigo-600">24/7</h3>
-            <p className="text-gray-600">Hỗ trợ khách hàng</p>
-          </div>
+        <div className="max-w-[1000px] mx-auto grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
+          {[
+            { number: "1,200+", label: "Sản phẩm" },
+            { number: "5,000+", label: "Khách hàng" },
+            { number: "99.9%", label: "Uptime hệ thống" },
+            { number: "24/7", label: "Hỗ trợ khách hàng" },
+          ].map((stat, idx) => (
+            <div
+              key={idx}
+              className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-xl shadow hover:translate-y-1 transition"
+            >
+              <h3 className="text-4xl font-bold text-indigo-600">
+                {stat.number}
+              </h3>
+              <p className="text-gray-600">{stat.label}</p>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* Team Section */}
-      <section className="max-w-[1200px] mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-10">
+      <section className="max-w-[1200px] mx-auto px-4 py-20">
+        <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">
           Đội ngũ phát triển
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           {[
             { name: "Tân", role: "Dev" },
             { name: "Trí", role: "Dev" },
@@ -98,32 +84,40 @@ export default function AboutPage() {
           ].map((member, idx) => (
             <div
               key={idx}
-              className="bg-white p-4 rounded-xl shadow hover:shadow-lg transition flex flex-col items-center"
+              className="bg-white p-6 rounded-xl shadow hover:shadow-2xl transition flex flex-col items-center hover:scale-105 transform"
             >
               <img
                 src={`/team/member${idx + 1}.jpg`}
                 alt={member.name}
-                className="w-24 h-24 rounded-full object-cover mb-3"
+                className="w-28 h-28 rounded-full object-cover mb-4 border-4 border-indigo-100 hover:border-indigo-400 transition"
               />
-              <h4 className="font-semibold">{member.name}</h4>
-              <p className="text-gray-500 text-sm">{member.role}</p>
+              <h4 className="font-semibold text-lg">{member.name}</h4>
+              <p className="text-gray-500 text-sm mb-2">{member.role}</p>
+              <div className="flex space-x-3 text-indigo-600">
+                <a href="#">
+                  <FaUsers />
+                </a>
+                <a href="#">
+                  <FaLock />
+                </a>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="bg-indigo-600 text-white py-12">
+      <section className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-20">
         <div className="max-w-[800px] mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">
+          <h2 className="text-4xl font-bold mb-6">
             Trải nghiệm UTE Shop ngay hôm nay
           </h2>
-          <p className="mb-6 text-lg opacity-90">
+          <p className="mb-8 text-lg opacity-90">
             Mua sắm thông minh, tiện lợi và an toàn chỉ với một cú click.
           </p>
           <a
             href="/products"
-            className="inline-block px-6 py-3 bg-yellow-300 text-indigo-900 font-bold rounded-lg shadow hover:bg-yellow-400 transition"
+            className="inline-block px-8 py-4 bg-yellow-300 text-indigo-900 font-bold rounded-xl shadow hover:bg-yellow-400 transition animate-pulse"
           >
             Bắt đầu mua sắm
           </a>

@@ -19,38 +19,29 @@ export default function OrderItemCard({ product, quantity, canReview }) {
   };
 
   return (
-    <div className="flex justify-between items-start pb-3 border-b border-gray-100 last:border-0">
-      {/* Trái: ảnh + thông tin */}
-      <div className="flex gap-3">
+    <div className="flex justify-between items-center p-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 rounded-lg transition">
+      {/* Left: image + info */}
+      <div className="flex gap-3 items-center">
         <img
           src={product?.image || "/placeholder-product.png"}
           alt={product?.name}
-          className="w-16 h-16 object-cover rounded border border-gray-200"
-          onError={(e) => {
-            e.currentTarget.src = "/placeholder-product.png";
-          }}
+          className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+          onError={(e) => { e.currentTarget.src = "/placeholder-product.png"; }}
         />
-        <div className="flex flex-col justify-between">
-          <p className="text-sm font-medium text-gray-800 line-clamp-2 max-w-[200px]">
-            {product?.name}
-          </p>
-          <span className="text-xs text-gray-500 mt-1">x{quantity}</span>
+        <div>
+          <p className="text-sm font-medium text-gray-800 line-clamp-2 max-w-[200px]">{product?.name}</p>
+          <p className="text-xs text-gray-500 mt-1">x{quantity}</p>
         </div>
       </div>
 
-      {/* Phải: giá + đánh giá */}
-      <div className="text-right">
-        <p className="text-sm font-medium text-gray-800">
-          {formatCurrency(subtotal)}
-        </p>
-        <p className="text-xs text-gray-500 line-through">
-          {product?.discountPrice ? formatCurrency(product.price) : null}
-        </p>
-
+      {/* Right: price + review */}
+      <div className="text-right flex flex-col items-end gap-1">
+        <p className="text-sm font-medium text-gray-800">{formatCurrency(subtotal)}</p>
+        {product?.discountPrice && <p className="text-xs text-gray-400 line-through">{formatCurrency(product.price)}</p>}
         {canReview && (
           <button
             onClick={() => setIsOpen(true)}
-            className="mt-2 px-3 py-1 text-sm border border-gray-300 text-gray-700 rounded hover:bg-gray-50"
+            className="mt-1 px-3 py-1 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
           >
             Đánh giá
           </button>
