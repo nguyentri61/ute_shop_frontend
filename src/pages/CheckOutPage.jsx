@@ -8,6 +8,7 @@ import DropdownInput from "../components/DropdownInput";
 import { clearCart, fetchCart, fetchPreCheckout, updateQuantity } from "../features/order/cartSlice";
 import { createOrderCOD } from "../features/order/orderSlice";
 import { fetchMyShippingCoupons, fetchMyProductCoupons } from "../features/products/couponSlice";
+import toast from "react-hot-toast";
 
 const CheckoutCOD = () => {
     const dispatch = useDispatch();
@@ -93,7 +94,7 @@ const CheckoutCOD = () => {
         )
             .unwrap()
             .then(() => {
-                message.success("Đặt hàng thành công!");
+                toast.success("Đã đặt hàng");
                 dispatch(clearCart());
                 localStorage.removeItem("selectedCartItemIds");
                 navigate("/");
