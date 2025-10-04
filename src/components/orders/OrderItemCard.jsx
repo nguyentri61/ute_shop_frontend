@@ -48,7 +48,12 @@ export default function OrderItemCard({ product, quantity, canReview }) {
         )}
       </div>
 
-      <ReviewModal isOpen={isOpen} onClose={() => setIsOpen(false)} onSubmit={handleSubmitReview} />
+      <ReviewModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        onSubmit={handleSubmitReview}
+        product={product}
+      />
     </div>
   );
 }

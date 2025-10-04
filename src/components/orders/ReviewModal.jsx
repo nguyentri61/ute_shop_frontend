@@ -1,12 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { GetReview } from "../../service/api.product.service";
 
-export default function ReviewModal({ isOpen, onClose, onSubmit }) {
+export default function ReviewModal({ isOpen, onClose, onSubmit, product }) {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [hoveredRating, setHoveredRating] = useState(0);
+  const [isSent, setIsSent] = useState(false);
+  useEffect(() => {
+    if (!isOpen) return;
+    const getReview = async () => {
+      try {
+        const response = await GetReview(product.id);
+        setComment(response.data.comment || "");
+        setRating(response.data.rating || 5);
+        setIsSent(response.data != null);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    getReview();
+  }, [isOpen, product]);
 
   if (!isOpen) return null;
-
   const StarIcon = ({ filled, onClick, onMouseEnter, onMouseLeave }) => (
     <svg
       className={`w-8 h-8 cursor-pointer transition-all duration-200 transform hover:scale-110 ${
@@ -109,15 +124,17 @@ export default function ReviewModal({ isOpen, onClose, onSubmit }) {
           >
             Hủy bỏ
           </button>
-          <button
-            onClick={() => {
-              onSubmit({ rating, comment });
-              onClose();
-            }}
-            className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-xl transition-all duration-200 transform hover:scale-[1.02] focus:ring-4 focus:ring-blue-200 shadow-lg hover:shadow-xl"
-          >
-            Gửi đánh giá
-          </button>
+          {!isSent && (
+            <button
+              onClick={() => {
+                onSubmit({ rating, comment });
+                onClose();
+              }}
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-xl transition-all duration-200 transform hover:scale-[1.02] focus:ring-4 focus:ring-blue-200 shadow-lg hover:shadow-xl"
+            >
+              Gửi đánh giá
+            </button>
+          )}
         </div>
       </div>
     </div>

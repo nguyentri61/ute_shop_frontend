@@ -7,12 +7,29 @@ import {
   registerUser,
 } from "../service/socketService";
 import { BellIcon } from "lucide-react";
+import {
+  GetNotification,
+  MarkAllAsRead,
+} from "../service/api.notification.service";
 
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
-
+  const [unreadCount, setUnreadCount] = useState(0);
   useEffect(() => {
+    const getReview = async () => {
+      try {
+        const response = await GetNotification();
+        setNotifications(response.data.notifications || []);
+        setUnreadCount(
+          (response.data.notifications || []).filter((n) => n.isRead === false)
+            .length
+        );
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    getReview();
     const token = localStorage.getItem("token");
     if (!token) return;
 
@@ -25,10 +42,27 @@ export default function NotificationBell() {
 
     onNotification((data) => {
       setNotifications((prev) => [data, ...prev]);
+      setUnreadCount((prev) => prev + 1);
     });
 
     return () => disconnectSocket();
   }, []);
+  useEffect(() => {
+    if (!open) return;
+    // Đánh dấu tất cả thông báo là đã đọc
+    handleMarkAsRead();
+  }, [open]);
+  const handleMarkAsRead = async () => {
+    try {
+      await MarkAllAsRead();
+      setNotifications((prev) =>
+        prev.map((n) => (n.isRead === false ? { ...n, isRead: true } : n))
+      );
+      setUnreadCount(0);
+    } catch (err) {
+      console.error("Lỗi đánh dấu đã đọc:", err);
+    }
+  };
 
   return (
     <div className="relative">
@@ -40,9 +74,9 @@ export default function NotificationBell() {
         <BellIcon className="w-6 h-6 text-gray-700" />
 
         {/* Chấm đỏ */}
-        {notifications.length > 0 && (
+        {unreadCount > 0 && (
           <span className="absolute top-0 right-0 -mt-1 -mr-1 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-            {notifications.length}
+            {unreadCount}
           </span>
         )}
       </button>

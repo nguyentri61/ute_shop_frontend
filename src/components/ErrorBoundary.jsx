@@ -19,22 +19,20 @@ class ErrorBoundary extends React.Component {
     console.log('ErrorBoundary render:', { hasError: this.state.hasError });
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="max-w-md w-full text-center">
             <div className="mb-8">
-              <div className="text-6xl font-bold text-red-300 dark:text-red-600 mb-4">
-                😵
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              <div className="text-6xl font-bold text-red-300 mb-4">😵</div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 Oops! Có lỗi xảy ra
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mb-8">
+              <p className="text-gray-600 mb-8">
                 Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.
               </p>
             </div>
-            
+
             <div className="space-y-4">
-              <button 
+              <button
                 onClick={() => window.location.reload()}
                 className="w-full inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
               >
@@ -43,8 +41,8 @@ class ErrorBoundary extends React.Component {
                 </svg>
                 Tải lại trang
               </button>
-              
-              <Link 
+
+              <Link
                 to="/"
                 className="w-full inline-flex items-center justify-center px-6 py-3 bg-gray-600 text-white font-medium rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500/50"
               >
