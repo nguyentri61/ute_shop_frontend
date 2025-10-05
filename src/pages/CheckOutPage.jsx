@@ -9,6 +9,7 @@ import { clearCart, fetchCart, fetchPreCheckout, updateQuantity } from "../featu
 import { createOrderCOD } from "../features/order/orderSlice";
 import { fetchMyShippingCoupons, fetchMyProductCoupons } from "../features/products/couponSlice";
 import toast from "react-hot-toast";
+import VoucherSelector from "../components/VoucherSelector";
 
 const CheckoutCOD = () => {
     const dispatch = useDispatch();
@@ -216,34 +217,38 @@ const CheckoutCOD = () => {
                     ]}
                 />
 
-                <DropdownInput
+                <VoucherSelector
                     label="Mã giảm giá vận chuyển"
+                    name="shippingVoucher"
                     value={form.shippingVoucher}
                     onChange={handleChange}
-                    onBlur={handleVoucherBlur}
-                    name="shippingVoucher"
-                    options={[
-                        { value: "", label: "Chọn mã giảm giá vận chuyển" },
-                        ...shippingCoupons.map((c) => ({
-                            value: c.id,
-                            label: `${c.code} - Giảm ${c.discount}₫`,
-                        })),
-                    ]}
+                    subTotal={subTotal}
+                    options={shippingCoupons.map((c) => ({
+                        value: c.code,
+                        code: c.code,
+                        discount: c.discount,
+                        expiredAt: c.expiredAt,
+                        minOrderValue: c.minOrderValue,
+                        remaining: c.remaining,
+                    }))}
+
                 />
 
-                <DropdownInput
+                <VoucherSelector
                     label="Mã giảm giá sản phẩm"
+                    name="productVoucher"
                     value={form.productVoucher}
                     onChange={handleChange}
-                    onBlur={handleVoucherBlur}
-                    name="productVoucher"
-                    options={[
-                        { value: "", label: "Chọn mã giảm giá sản phẩm" },
-                        ...productCoupons.map((c) => ({
-                            value: c.id,
-                            label: `${c.code} - Giảm ${c.discount}₫`,
-                        })),
-                    ]}
+                    subTotal={subTotal}
+                    options={productCoupons.map((c) => ({
+                        value: c.code,
+                        code: c.code,
+                        discount: c.discount,
+                        expiredAt: c.expiredAt,
+                        minOrderValue: c.minOrderValue,
+                        remaining: c.remaining,
+                    }))}
+
                 />
 
                 <DropdownInput
