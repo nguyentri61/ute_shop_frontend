@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { FaGift, FaClock, FaTag, FaCheckCircle, FaTimes } from "react-icons/fa";
+import {
+    FaGift,
+    FaClock,
+    FaCheckCircle,
+    FaTimes,
+    FaInfoCircle,
+} from "react-icons/fa";
 
 export default function VoucherSelector({
     label,
@@ -23,7 +29,11 @@ export default function VoucherSelector({
         setOpen(false);
     };
 
-    console.log(subTotal);
+    const formatCurrency = (v) =>
+        new Intl.NumberFormat("vi-VN", {
+            style: "currency",
+            currency: "VND",
+        }).format(v || 0);
 
     return (
         <div className="w-full">
@@ -33,10 +43,10 @@ export default function VoucherSelector({
                 </label>
             )}
 
-            {/* Nút mở popup chọn voucher */}
+            {/* Nút mở popup */}
             <button
                 onClick={() => setOpen(true)}
-                className="w-full flex justify-between items-center border border-gray-300 bg-white rounded-lg px-4 py-3 text-gray-700 hover:border-blue-400 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                className="w-full flex justify-between items-center border border-gray-200 bg-white rounded-xl px-4 py-3 text-gray-700 shadow-sm hover:shadow-md transition focus:ring-2 focus:ring-blue-400 focus:outline-none"
             >
                 {value ? (
                     <span className="flex items-center gap-2 text-blue-600 font-medium">
@@ -47,31 +57,32 @@ export default function VoucherSelector({
                         <FaGift /> Chọn mã giảm giá
                     </span>
                 )}
-                <span className="text-sm text-gray-500">▼</span>
+                <span className="text-gray-400 text-sm">▼</span>
             </button>
 
             {/* Popup chọn voucher */}
             {open && (
                 <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
-                    <div className="bg-white rounded-xl shadow-xl w-[90%] max-w-lg p-6 relative">
+                    <div className="bg-white rounded-2xl shadow-2xl w-[90%] max-w-lg p-6 relative animate-fadeIn">
                         <button
                             onClick={() => setOpen(false)}
-                            className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+                            className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition"
                         >
                             <FaTimes size={18} />
                         </button>
 
-                        <h2 className="text-xl font-semibold mb-4 text-gray-800">
-                            🎟️ Chọn mã giảm giá
+                        <h2 className="text-2xl font-bold mb-5 text-gray-800 flex items-center gap-2">
+                            <FaGift className="text-blue-500" />
+                            Chọn mã giảm giá
                         </h2>
 
-                        <div className="max-h-80 overflow-y-auto space-y-3 pr-1">
-                            {/* Option: Không chọn */}
+                        <div className="max-h-80 overflow-y-auto space-y-4 pr-1">
+                            {/* Không áp dụng */}
                             <div
                                 onClick={() => setSelected("")}
                                 className={`flex items-center justify-between border rounded-lg p-3 cursor-pointer transition ${selected === ""
-                                    ? "bg-red-50 border-red-400 text-red-600"
-                                    : "hover:bg-gray-50 border-gray-300"
+                                        ? "bg-red-50 border-red-400 text-red-600"
+                                        : "hover:bg-gray-50 border-gray-200"
                                     }`}
                             >
                                 <div className="flex items-center gap-2">
@@ -83,7 +94,7 @@ export default function VoucherSelector({
                                 )}
                             </div>
 
-                            {/* Các voucher */}
+                            {/* Các voucher thật */}
                             {options.length > 0 ? (
                                 options.map((opt, idx) => {
                                     const isActive = selected === opt.value;
@@ -93,53 +104,47 @@ export default function VoucherSelector({
                                     return (
                                         <div
                                             key={idx}
-                                            onClick={() =>
-                                                !isDisabled &&
-                                                setSelected(opt.value)
-                                            }
-                                            className={`border rounded-lg p-4 relative transition ${isActive
-                                                ? "border-blue-500 bg-blue-50"
-                                                : "border-gray-200 hover:border-blue-300"
-                                                } ${isDisabled
-                                                    ? "opacity-50 cursor-not-allowed"
-                                                    : "cursor-pointer"
+                                            onClick={() => !isDisabled && setSelected(opt.value)}
+                                            className={`relative border rounded-2xl p-4 transition-all duration-200 flex justify-between gap-3 ${isDisabled
+                                                    ? "opacity-60 bg-gray-50 border-dashed border-gray-300 cursor-not-allowed"
+                                                    : isActive
+                                                        ? "border-blue-400 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-sm cursor-pointer"
+                                                        : "border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer bg-white"
                                                 }`}
                                         >
+                                            {/* Check icon */}
                                             {isActive && !isDisabled && (
                                                 <FaCheckCircle className="absolute top-3 right-3 text-blue-500" />
                                             )}
 
-                                            <div className="flex justify-between items-center mb-1">
-                                                <div className="flex items-center gap-2 text-blue-600 font-semibold">
+                                            {/* Left side */}
+                                            <div>
+                                                <p className="text-blue-700 font-bold text-lg flex items-center gap-2">
                                                     <FaGift /> {opt.code}
-                                                </div>
+                                                </p>
+                                                <p className="text-sm text-gray-700 mt-1">
+                                                    Giảm {formatCurrency(opt.discount)}
+                                                </p>
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                    Đơn tối thiểu:{" "}
+                                                    {formatCurrency(opt.minOrderValue || 0)}
+                                                </p>
                                             </div>
 
-                                            <div className="text-sm text-gray-700 space-y-1">
-                                                <div className="flex items-center gap-2">
-                                                    <FaTag className="text-green-500" />
-                                                    <span>
-                                                        Giảm{" "}
-                                                        {opt.discount.toLocaleString()}₫
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
+                                            {/* Right side */}
+                                            <div className="flex flex-col items-end justify-between">
+                                                <div className="text-xs text-gray-600 flex items-center gap-1">
                                                     <FaClock className="text-yellow-500" />
-                                                    <span>
-                                                        HSD:{" "}
-                                                        {new Date(
-                                                            opt.expiredAt
-                                                        ).toLocaleDateString(
-                                                            "vi-VN"
-                                                        )}
-                                                    </span>
+                                                    {new Date(opt.expiredAt).toLocaleDateString("vi-VN")}
                                                 </div>
-                                                <div className="text-xs text-gray-500">
-                                                    Đơn tối thiểu:{" "}
-                                                    {opt.minOrderValue?.toLocaleString() ||
-                                                        0}
-                                                    ₫
+                                                <div className="text-xs text-gray-500 mt-1">
+                                                    Còn {opt.remaining} mã
                                                 </div>
+                                                {isDisabled && (
+                                                    <div className="text-[11px] text-red-500 flex items-center gap-1 mt-1">
+                                                        <FaInfoCircle /> Chưa đủ điều kiện
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     );
@@ -151,11 +156,11 @@ export default function VoucherSelector({
                             )}
                         </div>
 
-                        {/* Nút hành động */}
-                        <div className="flex justify-end gap-3 mt-5">
+                        {/* Buttons */}
+                        <div className="flex justify-end gap-3 mt-6">
                             <button
                                 onClick={handleClear}
-                                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium"
+                                className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition"
                             >
                                 Bỏ chọn
                             </button>
@@ -169,7 +174,7 @@ export default function VoucherSelector({
                                             subTotal < o.minOrderValue
                                     )
                                 }
-                                className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                className="px-5 py-2.5 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition"
                             >
                                 Áp dụng
                             </button>
