@@ -15,6 +15,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
     { id: "products", label: "Quản lý sản phẩm", icon: "🛍️" },
     { id: "users", label: "Quản lý người dùng", icon: "👥" },
     { id: "categories", label: "Quản lý danh mục", icon: "📋" },
+    { id: "voucher", label: "Quản lý mã giảm giá", icon: "📋" },
   ];
 
   return (
