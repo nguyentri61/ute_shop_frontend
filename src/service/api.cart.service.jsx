@@ -1,9 +1,9 @@
 import axios from "./axios.customize";
 
 // Xem trước khi thanh toán
-const PreCheckout = async (cartItemIds, shippingVoucher = null, productVoucher = null) => {
+const PreCheckout = async (cartItemIds, shippingVoucher = null, productVoucher = null, lat, lng) => {
     const API = "/carts/preview-checkout";
-    return axios.post(API, { cartItemIds, shippingVoucher, productVoucher });
+    return axios.post(API, { cartItemIds, shippingVoucher, productVoucher, lat, lng });
 };
 
 // Cập nhật số lượng sản phẩm trong giỏ

@@ -16,7 +16,9 @@ const createOrderCODService = (
   phone,
   cartItemIds,
   shippingVoucher = null,
-  productVoucher = null
+  productVoucher = null,
+  lat,
+  lng,
 ) => {
   const API = "/orders/checkout-cod";
   return axios.post(API, {
@@ -25,6 +27,8 @@ const createOrderCODService = (
     cartItemIds,
     shippingVoucher,
     productVoucher,
+    lat,
+    lng,
   });
 };
 

@@ -29,6 +29,7 @@ import {
     fetchMyShippingCoupons,
     fetchMyProductCoupons,
 } from "../features/products/couponSlice";
+import AddressPicker from "../components/AddressPicker";
 
 export default function CheckoutCOD() {
     const dispatch = useDispatch();
@@ -50,6 +51,10 @@ export default function CheckoutCOD() {
         (state) => state.coupons
     );
 
+    const defaultLat = parseFloat(import.meta.env.VITE_HCMUTE_LAT) || 10.850721;
+    const defaultLng = parseFloat(import.meta.env.VITE_HCMUTE_LNG) || 106.771395;
+
+
     const [form, setForm] = useState({
         address: "",
         phone: "",
@@ -57,7 +62,10 @@ export default function CheckoutCOD() {
         shippingVoucher: "",
         productVoucher: "",
         paymentMethod: "COD",
+        lat: defaultLat,
+        lng: defaultLng,
     });
+
 
     const selectedItems = useMemo(
         () => cartItems.filter((i) => selectedCartItemIds.includes(i.id)),
@@ -77,6 +85,8 @@ export default function CheckoutCOD() {
                     cartItemIds: selectedCartItemIds,
                     shippingVoucher: form.shippingVoucher,
                     productVoucher: form.productVoucher,
+                    lat: form.lat,
+                    lng: form.lng,
                 })
             );
         }
@@ -86,6 +96,8 @@ export default function CheckoutCOD() {
         selectedCartItemIds,
         form.shippingVoucher,
         form.productVoucher,
+        form.lat,
+        form.lng,
     ]);
 
     if (error) {
@@ -113,6 +125,8 @@ export default function CheckoutCOD() {
                 cartItemIds: selectedCartItemIds,
                 shippingVoucher: form.shippingVoucher,
                 productVoucher: form.productVoucher,
+                lat: form.lat,
+                lng: form.lng
             })
         )
             .unwrap()
@@ -211,12 +225,24 @@ export default function CheckoutCOD() {
                         Thông tin giao hàng
                     </h2>
 
+                    <AddressPicker
+                        onAddressChange={(data) =>
+                            setForm({
+                                ...form,
+                                address: data.address,
+                                lat: data.lat,
+                                lng: data.lng,
+                            })
+                        }
+                    />
+
+
                     <Input
                         label="Địa chỉ nhận hàng"
                         name="address"
                         value={form.address}
                         onChange={handleChange}
-                        placeholder="Nhập địa chỉ cụ thể"
+                        placeholder="Nhập địa chỉ cụ thể hoặc chọn trên bản đồ"
                         required
                     />
 
