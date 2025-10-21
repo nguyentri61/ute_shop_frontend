@@ -1,13 +1,12 @@
 import React from "react";
-import QuantitySelector from "./QuantitySelector";
 
-const OrderItem = ({ id, name, qty, price, image, description, onIncrease, onDecrease }) => {
+const OrderItem = ({ id, name, qty, price, image, description }) => {
     return (
         <div className="flex items-center gap-4 py-4 border-b last:border-b-0 hover:bg-gray-50 transition rounded-lg">
             {/* Ảnh sản phẩm */}
             <div className="relative">
                 <img
-                    src={image}
+                    src={image || "/placeholder-product.png"}
                     alt={name}
                     className="w-20 h-20 object-cover rounded-xl border shadow-sm hover:scale-105 transition-transform duration-200"
                 />
@@ -17,15 +16,7 @@ const OrderItem = ({ id, name, qty, price, image, description, onIncrease, onDec
             <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-800 truncate">{name}</p>
                 <p className="text-sm text-gray-500 line-clamp-1">{description}</p>
-            </div>
-
-            {/* Bộ chọn số lượng */}
-            <div className="w-32 flex justify-center">
-                <QuantitySelector
-                    value={qty}
-                    onIncrease={() => onIncrease(id)}
-                    onDecrease={() => onDecrease(id)}
-                />
+                <p className="text-sm text-gray-600 mt-1">Số lượng: {qty}</p>
             </div>
 
             {/* Giá */}

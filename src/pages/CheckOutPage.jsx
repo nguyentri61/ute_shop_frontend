@@ -3,33 +3,24 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { message, Spin } from "antd";
 import toast from "react-hot-toast";
-import {
-    Package,
-    MapPin,
-    Phone,
-    Truck,
-    CreditCard,
-    Gift,
-    FileText,
-} from "lucide-react";
+import { Package, MapPin, FileText } from "lucide-react";
 
 import OrderList from "../components/OrderList";
 import Input from "../components/Input";
 import DropdownInput from "../components/DropdownInput";
 import VoucherSelector from "../components/VoucherSelector";
+import AddressPicker from "../components/AddressPicker";
 
 import {
     clearCart,
     fetchCart,
     fetchPreCheckout,
-    updateQuantity,
 } from "../features/order/cartSlice";
 import { createOrderCOD } from "../features/order/orderSlice";
 import {
     fetchMyShippingCoupons,
     fetchMyProductCoupons,
 } from "../features/products/couponSlice";
-import AddressPicker from "../components/AddressPicker";
 
 export default function CheckoutCOD() {
     const dispatch = useDispatch();
@@ -54,7 +45,6 @@ export default function CheckoutCOD() {
     const defaultLat = parseFloat(import.meta.env.VITE_HCMUTE_LAT) || 10.850721;
     const defaultLng = parseFloat(import.meta.env.VITE_HCMUTE_LNG) || 106.771395;
 
-
     const [form, setForm] = useState({
         address: "",
         phone: "",
@@ -65,7 +55,6 @@ export default function CheckoutCOD() {
         lat: defaultLat,
         lng: defaultLng,
     });
-
 
     const selectedItems = useMemo(
         () => cartItems.filter((i) => selectedCartItemIds.includes(i.id)),
@@ -79,10 +68,10 @@ export default function CheckoutCOD() {
     }, [dispatch]);
 
     useEffect(() => {
-        if (cartItems.length && selectedCartItemIds.length) {
+        if (selectedItems.length) {
             dispatch(
                 fetchPreCheckout({
-                    cartItemIds: selectedCartItemIds,
+                    cartItemIds: selectedItems.map((i) => i.id),
                     shippingVoucher: form.shippingVoucher,
                     productVoucher: form.productVoucher,
                     lat: form.lat,
@@ -92,8 +81,7 @@ export default function CheckoutCOD() {
         }
     }, [
         dispatch,
-        cartItems,
-        selectedCartItemIds,
+        selectedItems,
         form.shippingVoucher,
         form.productVoucher,
         form.lat,
@@ -102,19 +90,20 @@ export default function CheckoutCOD() {
 
     if (error) {
         return (
-            <div className="text-center py-10 text-red-500 font-semibold">
-                {error}
-            </div>
+            <div className="text-center py-10 text-red-500 font-semibold">{error}</div>
         );
     }
 
-    const handleChange = (e) =>
-        setForm({ ...form, [e.target.name]: e.target.value });
+    const handleChange = (e) => {
+        console.log("🔹 onChange:", e.target.name, e.target.value);
+        setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!selectedCartItemIds.length) {
-            message.error("Vui lòng chọn ít nhất 1 sản phẩm");
+        if (!selectedItems.length) {
+            message.error("Không có sản phẩm nào trong đơn hàng");
             return;
         }
 
@@ -122,11 +111,11 @@ export default function CheckoutCOD() {
             createOrderCOD({
                 address: form.address,
                 phone: form.phone,
-                cartItemIds: selectedCartItemIds,
+                cartItemIds: selectedItems.map((i) => i.id),
                 shippingVoucher: form.shippingVoucher,
                 productVoucher: form.productVoucher,
                 lat: form.lat,
-                lng: form.lng
+                lng: form.lng,
             })
         )
             .unwrap()
@@ -156,12 +145,16 @@ export default function CheckoutCOD() {
         );
     }
 
+    console.log("shippingVoucher:", form.shippingVoucher);
+    console.log("productVoucher:", form.productVoucher);
+
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 py-10 px-4">
             <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Section */}
                 <div className="lg:col-span-2 space-y-6">
-                    {/* Giỏ hàng */}
+                    {/* Danh sách sản phẩm */}
                     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
                         <h2 className="text-xl font-bold flex items-center gap-2 mb-4 text-gray-800">
                             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
@@ -169,6 +162,7 @@ export default function CheckoutCOD() {
                             </div>
                             Sản phẩm trong đơn
                         </h2>
+
                         <OrderList
                             products={selectedItems.map((item) => ({
                                 id: item.id,
@@ -202,7 +196,9 @@ export default function CheckoutCOD() {
                         </div>
                         <div className="flex justify-between text-green-600">
                             <span>Giảm giá</span>
-                            <span>-{(shippingDiscount + productDiscount).toLocaleString()}₫</span>
+                            <span>
+                                -{(shippingDiscount + productDiscount).toLocaleString()}₫
+                            </span>
                         </div>
                         <div className="border-t pt-3 flex justify-between items-center">
                             <span className="text-lg font-bold text-gray-800">Tổng cộng</span>
@@ -236,7 +232,6 @@ export default function CheckoutCOD() {
                         }
                     />
 
-
                     <Input
                         label="Địa chỉ nhận hàng"
                         name="address"
@@ -269,16 +264,17 @@ export default function CheckoutCOD() {
                     <VoucherSelector
                         label="Mã giảm giá vận chuyển"
                         name="shippingVoucher"
-                        value={form.shippingVoucher}
+                        value={form.shippingVoucher || ""}
                         onChange={handleChange}
                         subTotal={subTotal}
                         options={shippingCoupons}
                     />
 
+
                     <VoucherSelector
                         label="Mã giảm giá sản phẩm"
                         name="productVoucher"
-                        value={form.productVoucher}
+                        value={form.productVoucher || ""}
                         onChange={handleChange}
                         subTotal={subTotal}
                         options={productCoupons}
@@ -305,7 +301,9 @@ export default function CheckoutCOD() {
                         ) : (
                             <>
                                 <span>Xác nhận đặt hàng</span>
-                                <span className="text-yellow-300">{total.toLocaleString()}₫</span>
+                                <span className="text-yellow-300">
+                                    {total.toLocaleString()}₫
+                                </span>
                             </>
                         )}
                     </button>

@@ -21,8 +21,10 @@ export default function VoucherSelector({
 
     // Đồng bộ khi prop value thay đổi từ ngoài
     useEffect(() => {
-        setSelected(value || "");
+        setSelected(value ?? "");
     }, [value]);
+
+    console.log(selected);
 
     const formatCurrency = (v) =>
         new Intl.NumberFormat("vi-VN", {
@@ -135,13 +137,13 @@ export default function VoucherSelector({
                             {/* Các voucher */}
                             {options.length > 0 ? (
                                 options.map((opt, idx) => {
-                                    const isActive = selected === opt.value;
+                                    const isActive = selected === opt.code;
                                     const isDisabled = subTotal < (opt.minOrderValue || 0);
                                     return (
                                         <button
                                             key={idx}
                                             type="button" // 🔒
-                                            onClick={() => !isDisabled && setSelected(opt.value)}
+                                            onClick={() => !isDisabled && setSelected(opt.code)}
                                             className={`w-full text-left relative border rounded-2xl p-4 transition-all duration-200 flex justify-between gap-3 ${isDisabled
                                                 ? "opacity-60 bg-gray-50 border-dashed border-gray-300 cursor-not-allowed"
                                                 : isActive
