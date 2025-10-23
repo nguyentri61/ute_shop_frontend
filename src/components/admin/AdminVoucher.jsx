@@ -303,7 +303,7 @@ const AdminVoucher = () => {
                         <label className="block text-sm text-gray-700 mb-1">Giảm giá</label>
                         <input
                             type="number"
-                            min={1}
+                            min={0}
                             className="w-full border border-gray-300 rounded-lg p-2"
                             value={form.discount}
                             onChange={(e) =>
@@ -427,7 +427,7 @@ const AdminVoucher = () => {
                                     <td className="p-2 border">{c.type}</td>
                                     <td className="p-2 border text-gray-600">{c.description}</td>
                                     <td className="p-2 border text-indigo-600 font-semibold">
-                                        {formatCurrency(c.discount)}
+                                        {c.discount > 1 ? formatCurrency(c.discount) : c.discount * 100 + "%"}
                                     </td>
                                     <td className="p-2 border">{formatCurrency(c.minOrderValue)}</td>
                                     <td className="p-2 border text-gray-800">{c.quantity}</td>

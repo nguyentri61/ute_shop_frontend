@@ -162,7 +162,7 @@ export default function VoucherSelector({
                                                     <FaGift /> {opt.code}
                                                 </p>
                                                 <p className="text-sm text-gray-700 mt-1">
-                                                    Giảm {formatCurrency(opt.discount)}
+                                                    Giảm {opt.discount > 1 ? formatCurrency(opt.discount) : opt.discount * 100 + "%"}
                                                 </p>
                                                 <p className="text-xs text-gray-500 mt-1">
                                                     Đơn tối thiểu: {formatCurrency(opt.minOrderValue || 0)}
