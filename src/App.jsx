@@ -27,6 +27,7 @@ import ProductsByCategoryPage from "./pages/ProductsByCategoryPage";
 import ProductsPage from "./pages/ProductPage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
+import ChatWidget from "./components/ChatWidget";
 
 // Protected Route component
 function ProtectedRoute() {
@@ -43,7 +44,7 @@ function Layout() {
       <main className="pt-16">
         <Outlet />
       </main>
-
+      <ChatWidget />
       {/* Toaster cho toàn bộ app */}
       <Toaster position="top-right" reverseOrder={false} />
     </div>
