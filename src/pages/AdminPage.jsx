@@ -14,6 +14,7 @@ import {
   ArrowRightOnRectangleIcon,
   Bars3Icon,
   XMarkIcon,
+
 } from "@heroicons/react/24/outline";
 import AdminOrderList from "../components/admin/AdminOrderList";
 import AdminSidebar from "../components/admin/AdminSidebar";
@@ -27,6 +28,7 @@ import { Avatar } from "antd";
 import { LogOut } from "lucide-react";
 import NotificationBell from "../components/NotificationBell";
 import DashboardPage from "../components/admin/DashBoard";
+import AdminVoucher from "../components/admin/AdminVoucher";
 
 const AdminPage = () => {
   const dispatch = useDispatch();
@@ -40,8 +42,10 @@ const AdminPage = () => {
     { id: "orders", label: "Đơn hàng", icon: ShoppingBagIcon, badge: "12" },
     { id: "products", label: "Sản phẩm", icon: CubeIcon },
     { id: "users", label: "Người dùng", icon: UsersIcon },
+    { id: "vouchers", label: "Mã giảm giá", icon: TagIcon },
     { id: "categories", label: "Danh mục", icon: TagIcon },
     { id: "settings", label: "Cài đặt", icon: Cog6ToothIcon },
+
   ];
 
   const handleLogout = () => {
@@ -238,6 +242,7 @@ const AdminPage = () => {
           {activeTab === "products" && <AdminProductList />}
           {activeTab === "users" && <AdminUserList />}
           {activeTab === "categories" && <AdminCategoryList />}
+
           {activeTab === "settings" && (
             <div className="p-6">
               <h3 className="text-lg font-semibold mb-4">
@@ -248,6 +253,7 @@ const AdminPage = () => {
               </p>
             </div>
           )}
+          {activeTab === "vouchers" && <AdminVoucher />}
         </main>
       </div>
 

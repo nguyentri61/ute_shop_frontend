@@ -2,15 +2,27 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { message, Spin } from "antd";
+import toast from "react-hot-toast";
+import { Package, MapPin, FileText } from "lucide-react";
+
 import OrderList from "../components/OrderList";
 import Input from "../components/Input";
 import DropdownInput from "../components/DropdownInput";
-import { clearCart, fetchCart, fetchPreCheckout, updateQuantity } from "../features/order/cartSlice";
-import { createOrderCOD } from "../features/order/orderSlice";
-import { fetchMyShippingCoupons, fetchMyProductCoupons } from "../features/products/couponSlice";
-import toast from "react-hot-toast";
+import VoucherSelector from "../components/VoucherSelector";
+import AddressPicker from "../components/AddressPicker";
 
-const CheckoutCOD = () => {
+import {
+    clearCart,
+    fetchCart,
+    fetchPreCheckout,
+} from "../features/order/cartSlice";
+import { createOrderCOD } from "../features/order/orderSlice";
+import {
+    fetchMyShippingCoupons,
+    fetchMyProductCoupons,
+} from "../features/products/couponSlice";
+
+export default function CheckoutCOD() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -26,10 +38,12 @@ const CheckoutCOD = () => {
         error,
     } = useSelector((state) => state.cart);
 
-    const {
-        shippingCoupons = [],
-        productCoupons = [],
-    } = useSelector((state) => state.coupons);
+    const { shippingCoupons = [], productCoupons = [] } = useSelector(
+        (state) => state.coupons
+    );
+
+    const defaultLat = parseFloat(import.meta.env.VITE_HCMUTE_LAT) || 10.850721;
+    const defaultLng = parseFloat(import.meta.env.VITE_HCMUTE_LNG) || 106.771395;
 
     const [form, setForm] = useState({
         address: "",
@@ -38,11 +52,14 @@ const CheckoutCOD = () => {
         shippingVoucher: "",
         productVoucher: "",
         paymentMethod: "COD",
+        lat: defaultLat,
+        lng: defaultLng,
     });
 
-    const selectedItems = useMemo(() => {
-        return cartItems.filter((i) => selectedCartItemIds.includes(i.id));
-    }, [cartItems, selectedCartItemIds]);
+    const selectedItems = useMemo(
+        () => cartItems.filter((i) => selectedCartItemIds.includes(i.id)),
+        [cartItems, selectedCartItemIds]
+    );
 
     useEffect(() => {
         dispatch(fetchCart());
@@ -51,109 +68,76 @@ const CheckoutCOD = () => {
     }, [dispatch]);
 
     useEffect(() => {
-        if (cartItems.length > 0 && selectedCartItemIds.length > 0) {
-            dispatch(fetchPreCheckout({
-                cartItemIds: selectedCartItemIds,
-                shippingVoucher: form.shippingVoucher,
-                productVoucher: form.productVoucher,
-            }));
+        if (selectedItems.length) {
+            dispatch(
+                fetchPreCheckout({
+                    cartItemIds: selectedItems.map((i) => i.id),
+                    shippingVoucher: form.shippingVoucher,
+                    productVoucher: form.productVoucher,
+                    lat: form.lat,
+                    lng: form.lng,
+                })
+            );
         }
-    }, [dispatch, cartItems, selectedCartItemIds, form.shippingVoucher, form.productVoucher]);
+    }, [
+        dispatch,
+        selectedItems,
+        form.shippingVoucher,
+        form.productVoucher,
+        form.lat,
+        form.lng,
+    ]);
 
     if (error) {
-        return <div className="text-center p-6 text-red-600 font-semibold">Lỗi: {error}</div>;
+        return (
+            <div className="text-center py-10 text-red-500 font-semibold">{error}</div>
+        );
     }
 
-    const handleChange = (e) =>
-        setForm({ ...form, [e.target.name]: e.target.value });
-
-    const handleVoucherBlur = () => {
-        dispatch(
-            fetchPreCheckout({
-                cartItemIds: selectedCartItemIds,
-                shippingVoucher: form.shippingVoucher,
-                productVoucher: form.productVoucher,
-            })
-        );
+    const handleChange = (e) => {
+        console.log("🔹 onChange:", e.target.name, e.target.value);
+        setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
+
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (selectedCartItemIds.length === 0) {
-            message.error("Vui lòng chọn ít nhất 1 sản phẩm");
+        if (!selectedItems.length) {
+            message.error("Không có sản phẩm nào trong đơn hàng");
             return;
         }
+
         dispatch(
             createOrderCOD({
                 address: form.address,
                 phone: form.phone,
-                cartItemIds: selectedCartItemIds,
+                cartItemIds: selectedItems.map((i) => i.id),
                 shippingVoucher: form.shippingVoucher,
                 productVoucher: form.productVoucher,
+                lat: form.lat,
+                lng: form.lng,
             })
         )
             .unwrap()
             .then(() => {
-                toast.success("Đã đặt hàng");
+                toast.success("Đặt hàng thành công!");
                 dispatch(clearCart());
                 localStorage.removeItem("selectedCartItemIds");
-                navigate("/");
+                navigate("/orders");
             })
             .catch((err) => {
                 message.error(err || "Có lỗi xảy ra, vui lòng thử lại!");
             });
     };
 
-    const handleIncrease = (id) => {
-        const item = cartItems.find((i) => i.id === id);
-        if (!item) return;
-
-        dispatch(updateQuantity({ cartItemId: id, quantity: item.quantity + 1 }))
-            .unwrap()
-            .then(() => {
-                dispatch(
-                    fetchPreCheckout({
-                        cartItemIds: selectedCartItemIds,
-                        shippingVoucher: form.shippingVoucher,
-                        productVoucher: form.productVoucher,
-                    })
-                );
-            })
-            .catch((err) =>
-                message.error(err || "Có lỗi xảy ra khi tăng số lượng!")
-            );
-    };
-
-    const handleDecrease = (id) => {
-        const item = cartItems.find((i) => i.id === id);
-        if (!item) return;
-        const newQty = item.quantity - 1;
-
-        dispatch(updateQuantity({ cartItemId: id, quantity: newQty }))
-            .unwrap()
-            .then(() => {
-                dispatch(
-                    fetchPreCheckout({
-                        cartItemIds: selectedCartItemIds,
-                        shippingVoucher: form.shippingVoucher,
-                        productVoucher: form.productVoucher,
-                    })
-                );
-            })
-            .catch((err) =>
-                message.error(err || "Có lỗi xảy ra khi giảm số lượng!")
-            );
-    };
-
-    // Hiển thị giỏ hàng trống
-    if (selectedItems.length === 0) {
+    if (!selectedItems.length) {
         return (
-            <div className="flex flex-col items-center justify-center py-20">
-                <img src="/empty-cart.svg" alt="Empty Cart" className="w-40 mb-6" />
-                <p className="text-gray-500 text-lg">Giỏ hàng của bạn đang trống</p>
+            <div className="min-h-[60vh] flex flex-col justify-center items-center">
+                <img src="/empty-cart.svg" alt="Empty cart" className="w-40 mb-4" />
+                <p className="text-gray-600">Giỏ hàng của bạn đang trống</p>
                 <button
                     onClick={() => navigate("/")}
-                    className="mt-4 px-6 py-2 bg-blue-500 hover:bg-blue-600 transition text-white rounded-lg shadow"
+                    className="mt-4 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow"
                 >
                     Tiếp tục mua sắm
                 </button>
@@ -161,130 +145,169 @@ const CheckoutCOD = () => {
         );
     }
 
+    console.log("shippingVoucher:", form.shippingVoucher);
+    console.log("productVoucher:", form.productVoucher);
+
+
     return (
-        <div className="container mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2 bg-white rounded-2xl shadow ">
-                <OrderList
-                    products={selectedItems.map((item) => ({
-                        id: item.id,
-                        name: item.variant.product.name,
-                        price: item.variant.discountPrice ?? item.variant.price,
-                        qty: item.quantity,
-                        image: item.variant.image ?? "",
-                        description: `Size: ${item.variant.size || "-"}, Color: ${item.variant.color || "-"
-                            }`,
-                        variant: item.variant,
-                    }))}
-                    onIncrease={handleIncrease}
-                    onDecrease={handleDecrease}
-                />
-            </div>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 py-10 px-4">
+            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left Section */}
+                <div className="lg:col-span-2 space-y-6">
+                    {/* Danh sách sản phẩm */}
+                    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                        <h2 className="text-xl font-bold flex items-center gap-2 mb-4 text-gray-800">
+                            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
+                                <Package className="w-5 h-5 text-white" />
+                            </div>
+                            Sản phẩm trong đơn
+                        </h2>
 
-            <form
-                onSubmit={handleSubmit}
-                className="bg-white p-6 rounded-2xl shadow-lg sticky top-6 flex flex-col gap-4 h-fit"
-            >
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                    <i className="ri-file-list-3-line text-blue-500"></i> Thông tin thanh toán
-                </h2>
-
-                <Input
-                    label="Địa chỉ"
-                    value={form.address}
-                    onChange={handleChange}
-                    name="address"
-                    placeholder="Nhập địa chỉ nhận hàng"
-                    required
-                />
-                <Input
-                    label="Số điện thoại"
-                    type="tel"
-                    value={form.phone}
-                    onChange={handleChange}
-                    name="phone"
-                    placeholder="VD: 0987xxxxxx"
-                    required
-                />
-
-                <DropdownInput
-                    label="Phương thức vận chuyển"
-                    value={form.shipping}
-                    onChange={(e) => setForm({ ...form, shipping: e.target.value })}
-                    options={[
-                        { value: "Giao hàng nhanh", label: "Giao hàng nhanh" },
-                        { value: "Giao hàng tiết kiệm", label: "Giao hàng tiết kiệm" },
-                    ]}
-                />
-
-                <DropdownInput
-                    label="Mã giảm giá vận chuyển"
-                    value={form.shippingVoucher}
-                    onChange={handleChange}
-                    onBlur={handleVoucherBlur}
-                    name="shippingVoucher"
-                    options={[
-                        { value: "", label: "Chọn mã giảm giá vận chuyển" },
-                        ...shippingCoupons.map((c) => ({
-                            value: c.id,
-                            label: `${c.code} - Giảm ${c.discount}₫`,
-                        })),
-                    ]}
-                />
-
-                <DropdownInput
-                    label="Mã giảm giá sản phẩm"
-                    value={form.productVoucher}
-                    onChange={handleChange}
-                    onBlur={handleVoucherBlur}
-                    name="productVoucher"
-                    options={[
-                        { value: "", label: "Chọn mã giảm giá sản phẩm" },
-                        ...productCoupons.map((c) => ({
-                            value: c.id,
-                            label: `${c.code} - Giảm ${c.discount}₫`,
-                        })),
-                    ]}
-                />
-
-                <DropdownInput
-                    label="Phương thức thanh toán"
-                    value={form.paymentMethod}
-                    onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}
-                    options={[{ value: "COD", label: "Thanh toán khi nhận hàng (COD)" }]}
-                />
-
-                <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
-                    <div className="flex justify-between">
-                        <span>Tiền hàng</span>
-                        <span>{subTotal.toLocaleString()}₫</span>
+                        <OrderList
+                            products={selectedItems.map((item) => ({
+                                id: item.id,
+                                name: item.variant.product.name,
+                                price: item.variant.discountPrice ?? item.variant.price,
+                                qty: item.quantity,
+                                image: item.variant.image ?? "",
+                                description: `Size: ${item.variant.size || "-"}, Màu: ${item.variant.color || "-"
+                                    }`,
+                                variant: item.variant,
+                            }))}
+                        />
                     </div>
-                    <div className="flex justify-between">
-                        <span>Phí vận chuyển</span>
-                        <span>{shippingFee.toLocaleString()}₫</span>
-                    </div>
-                    <div className="flex justify-between text-green-600">
-                        <span>Giảm giá</span>
-                        <span>-{(shippingDiscount + productDiscount).toLocaleString()}₫</span>
-                    </div>
-                    <div className="flex justify-between font-bold text-lg border-t pt-2">
-                        <span>Tổng cộng</span>
-                        <span className="text-red-600">{total.toLocaleString()}₫</span>
+
+                    {/* Tổng kết đơn hàng */}
+                    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-3">
+                        <h2 className="text-xl font-bold flex items-center gap-2 text-gray-800 mb-4">
+                            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                                <FileText className="w-5 h-5 text-white" />
+                            </div>
+                            Tóm tắt đơn hàng
+                        </h2>
+
+                        <div className="flex justify-between text-gray-600">
+                            <span>Tạm tính</span>
+                            <span>{subTotal.toLocaleString()}₫</span>
+                        </div>
+                        <div className="flex justify-between text-gray-600">
+                            <span>Phí vận chuyển</span>
+                            <span>{shippingFee.toLocaleString()}₫</span>
+                        </div>
+                        <div className="flex justify-between text-green-600">
+                            <span>Giảm giá</span>
+                            <span>
+                                -{(shippingDiscount + productDiscount).toLocaleString()}₫
+                            </span>
+                        </div>
+                        <div className="border-t pt-3 flex justify-between items-center">
+                            <span className="text-lg font-bold text-gray-800">Tổng cộng</span>
+                            <span className="text-2xl font-bold text-gradient bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                {total.toLocaleString()}₫
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                <button
-                    type="submit"
-                    disabled={selectedItems.length === 0 || loading}
-                    className="w-full bg-red-500 hover:bg-red-600 transition text-white py-3 rounded-xl font-bold text-lg mt-4 flex justify-between px-4 items-center disabled:bg-gray-300 disabled:cursor-not-allowed"
+                {/* Right Section */}
+                <form
+                    onSubmit={handleSubmit}
+                    className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-5 h-fit sticky top-10"
                 >
-                    {loading ? <Spin /> : <>
-                        <span>Đặt hàng</span>
-                        <span className="text-yellow-300">{total.toLocaleString()}₫</span>
-                    </>}
-                </button>
-            </form>
+                    <h2 className="text-xl font-bold flex items-center gap-2 text-gray-800">
+                        <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-teal-500 rounded-lg flex items-center justify-center">
+                            <MapPin className="w-5 h-5 text-white" />
+                        </div>
+                        Thông tin giao hàng
+                    </h2>
+
+                    <AddressPicker
+                        onAddressChange={(data) =>
+                            setForm({
+                                ...form,
+                                address: data.address,
+                                lat: data.lat,
+                                lng: data.lng,
+                            })
+                        }
+                    />
+
+                    <Input
+                        label="Địa chỉ nhận hàng"
+                        name="address"
+                        value={form.address}
+                        onChange={handleChange}
+                        placeholder="Nhập địa chỉ cụ thể hoặc chọn trên bản đồ"
+                        required
+                    />
+
+                    <Input
+                        label="Số điện thoại"
+                        name="phone"
+                        type="tel"
+                        value={form.phone}
+                        onChange={handleChange}
+                        placeholder="VD: 0987xxxxxx"
+                        required
+                    />
+
+                    <DropdownInput
+                        label="Phương thức vận chuyển"
+                        value={form.shipping}
+                        onChange={(e) => setForm({ ...form, shipping: e.target.value })}
+                        options={[
+                            { value: "Giao hàng nhanh", label: "Giao hàng nhanh" },
+                        ]}
+                    />
+
+                    <VoucherSelector
+                        label="Mã giảm giá vận chuyển"
+                        name="shippingVoucher"
+                        value={form.shippingVoucher || ""}
+                        onChange={handleChange}
+                        subTotal={subTotal}
+                        options={shippingCoupons}
+                    />
+
+
+                    <VoucherSelector
+                        label="Mã giảm giá sản phẩm"
+                        name="productVoucher"
+                        value={form.productVoucher || ""}
+                        onChange={handleChange}
+                        subTotal={subTotal}
+                        options={productCoupons}
+                    />
+
+                    <DropdownInput
+                        label="Phương thức thanh toán"
+                        value={form.paymentMethod}
+                        onChange={(e) =>
+                            setForm({ ...form, paymentMethod: e.target.value })
+                        }
+                        options={[
+                            { value: "COD", label: "Thanh toán khi nhận hàng (COD)" },
+                        ]}
+                    />
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold flex justify-between items-center px-4 hover:opacity-90 disabled:opacity-50 transition"
+                    >
+                        {loading ? (
+                            <Spin />
+                        ) : (
+                            <>
+                                <span>Xác nhận đặt hàng</span>
+                                <span className="text-yellow-300">
+                                    {total.toLocaleString()}₫
+                                </span>
+                            </>
+                        )}
+                    </button>
+                </form>
+            </div>
         </div>
     );
-};
-
-export default CheckoutCOD;
+}

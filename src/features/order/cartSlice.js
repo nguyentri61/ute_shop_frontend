@@ -58,10 +58,10 @@ export const updateQuantity = createAsyncThunk(
 
 export const fetchPreCheckout = createAsyncThunk(
     "cart/fetchPreCheckout",
-    async ({ cartItemIds, shippingVoucher, productVoucher }, { rejectWithValue }) => {
+    async ({ cartItemIds, shippingVoucher, productVoucher, lat, lng }, { rejectWithValue }) => {
         try {
-            console.log("fetchPreCheckOut: ", { cartItemIds, shippingVoucher, productVoucher });
-            const res = await PreCheckout(cartItemIds, shippingVoucher, productVoucher);
+            console.log("fetchPreCheckOut: ", { cartItemIds, shippingVoucher, productVoucher, lat, lng });
+            const res = await PreCheckout(cartItemIds, shippingVoucher, productVoucher, lat, lng);
             console.log("PreCheckout response: ", res.data);
             return res.data;
         } catch (err) {

@@ -11,34 +11,33 @@ import {
   GetNotification,
   MarkAllAsRead,
 } from "../service/api.notification.service";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  // 🧩 Lấy danh sách notification ban đầu
   useEffect(() => {
-    const getReview = async () => {
+    const fetchData = async () => {
       try {
         const response = await GetNotification();
-        setNotifications(response.data.notifications || []);
-        setUnreadCount(
-          (response.data.notifications || []).filter((n) => n.isRead === false)
-            .length
-        );
+        const noti = response.data.notifications || [];
+        setNotifications(noti);
+        setUnreadCount(noti.filter((n) => !n.isRead).length);
       } catch (err) {
         console.error(err);
       }
     };
-    getReview();
+    fetchData();
+
     const token = localStorage.getItem("token");
     if (!token) return;
 
     const decoded = jwtDecode(token);
-    const userId = decoded.id;
-    const role = decoded.role;
-
     connectSocket();
-    registerUser(userId, role);
+    registerUser(decoded.id, decoded.role);
 
     onNotification((data) => {
       setNotifications((prev) => [data, ...prev]);
@@ -47,17 +46,16 @@ export default function NotificationBell() {
 
     return () => disconnectSocket();
   }, []);
+
+  // 🕹 Khi mở popup -> đánh dấu đã đọc
   useEffect(() => {
-    if (!open) return;
-    // Đánh dấu tất cả thông báo là đã đọc
-    handleMarkAsRead();
+    if (open) handleMarkAsRead();
   }, [open]);
+
   const handleMarkAsRead = async () => {
     try {
       await MarkAllAsRead();
-      setNotifications((prev) =>
-        prev.map((n) => (n.isRead === false ? { ...n, isRead: true } : n))
-      );
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (err) {
       console.error("Lỗi đánh dấu đã đọc:", err);
@@ -66,50 +64,101 @@ export default function NotificationBell() {
 
   return (
     <div className="relative">
-      {/* Nút chuông */}
+      {/* 🔔 Nút chuông */}
       <button
-        className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
-        onClick={() => setOpen(!open)}
+        onClick={() => setOpen((o) => !o)}
+        className={`relative p-2 rounded-full transition-all duration-300 ${unreadCount > 0
+          ? "bg-indigo-50 hover:bg-indigo-100 text-indigo-600 animate-pulse-soft"
+          : "hover:bg-gray-100 text-gray-700"
+          }`}
       >
-        <BellIcon className="w-6 h-6 text-gray-700" />
-
-        {/* Chấm đỏ */}
+        <BellIcon className="w-6 h-6" />
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 -mt-1 -mr-1 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+          <motion.span
+            key={unreadCount}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="absolute top-0 right-0 -mt-1 -mr-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow"
+          >
             {unreadCount}
-          </span>
+          </motion.span>
         )}
       </button>
 
-      {/* Popup notification */}
-      {open && (
-        <div className="absolute right-0 mt-2 w-80 max-h-96 bg-white border border-gray-200 shadow-lg rounded-md overflow-hidden z-50">
-          <div className="p-2 text-sm font-semibold border-b border-gray-100">
-            Notifications
-          </div>
-          <ul className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
-            {notifications.length === 0 && (
-              <li className="p-3 text-gray-500">No notifications</li>
-            )}
-            {notifications.map((n, i) => (
-              <li
-                key={i}
-                className="p-3 hover:bg-gray-50 transition-colors cursor-pointer flex justify-between items-center"
-              >
-                <span>{n.message}</span>
-                {n.link && (
-                  <a
-                    href={n.link}
-                    className="text-blue-500 hover:underline text-sm"
+      {/* 🧭 Popup Notifications */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="absolute right-0 mt-3 w-80 max-h-96 bg-white border border-gray-200 shadow-xl rounded-xl overflow-hidden z-50 backdrop-blur-sm"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
+              <h3 className="font-semibold text-gray-800 text-sm">
+                Thông báo
+              </h3>
+              <span className="text-xs text-gray-400">
+                {notifications.length} tổng
+              </span>
+            </div>
+
+            {/* Danh sách */}
+            <ul className="divide-y divide-gray-100 max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
+              {notifications.length === 0 ? (
+                <li className="p-4 text-gray-500 text-sm text-center">
+                  Không có thông báo nào
+                </li>
+              ) : (
+                notifications.map((n, i) => (
+                  <motion.li
+                    key={i}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.03 }}
+                    className={`p-4 text-sm flex justify-between items-center cursor-pointer transition-all ${!n.isRead
+                      ? "bg-indigo-50 hover:bg-indigo-100"
+                      : "hover:bg-gray-50"
+                      }`}
                   >
-                    View
-                  </a>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+                    <span
+                      className={`flex-1 pr-2 ${!n.isRead ? "font-medium text-gray-800" : "text-gray-600"
+                        }`}
+                    >
+                      {n.message}
+                    </span>
+                    {n.link && (
+                      <a
+                        href={n.link}
+                        className="text-indigo-600 text-xs hover:underline whitespace-nowrap"
+                      >
+                        Xem
+                      </a>
+                    )}
+                  </motion.li>
+                ))
+              )}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 🔧 Hiệu ứng pulse nhẹ khi có thông báo */}
+      <style jsx>{`
+        @keyframes pulse-soft {
+          0%, 100% {
+            box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+          }
+          50% {
+            box-shadow: 0 0 0 6px rgba(99, 102, 241, 0);
+          }
+        }
+        .animate-pulse-soft {
+          animation: pulse-soft 2s infinite;
+        }
+      `}</style>
     </div>
   );
 }

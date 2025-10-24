@@ -72,9 +72,9 @@ export const cancelOrder = createAsyncThunk(
 
 export const createOrderCOD = createAsyncThunk(
     "orders/createOrderCOD",
-    async ({ address, phone, cartItemIds, shippingVoucher, productVoucher }, { rejectWithValue }) => {
+    async ({ address, phone, cartItemIds, shippingVoucher, productVoucher, lat, lng }, { rejectWithValue }) => {
         try {
-            const res = await createOrderCODService(address, phone, cartItemIds, shippingVoucher, productVoucher);
+            const res = await createOrderCODService(address, phone, cartItemIds, shippingVoucher, productVoucher, lat, lng);
             console.log(res.data);
             return res.data;
         } catch (err) {

@@ -24,6 +24,7 @@ export default function ProductCard({ product }) {
   const imageUrl = images?.[0]?.url || "/placeholder-product.png";
   const isNew = new Date() - new Date(createdAt) < 7 * 24 * 60 * 60 * 1000;
   const sale = discountPrice && discountPrice < price;
+  const discountPercent = sale ? Math.round(((price - discountPrice) / price) * 100) : 0;
 
   const handleClick = () => {
     if (id) dispatch(addToRecentlyViewed(id));
@@ -32,56 +33,57 @@ export default function ProductCard({ product }) {
 
   return (
     <div
-      className="bg-white rounded-lg shadow-md overflow-hidden w-full relative
-                 transform transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer"
+      className="bg-white rounded-xl shadow-md overflow-hidden w-full relative
+                 transform transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer group"
     >
       {/* Nút yêu thích */}
-      <div className="absolute top-2 right-2 z-10">
+      <div className="absolute top-3 right-3 z-10">
         <FavoriteButton
           productId={id}
-          className="bg-white/80 hover:bg-white rounded-full p-1.5 shadow-sm"
+          className="bg-white/90 hover:bg-white rounded-full p-2 shadow-md"
         />
       </div>
 
       {/* Badges */}
-      <div className="absolute top-2 left-2 flex flex-col gap-1">
+      <div className="absolute top-3 left-3 flex flex-col gap-1">
         {isNew && (
-          <span className="bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded">
+          <span className="bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded shadow-sm">
             NEW
           </span>
         )}
         {sale && (
-          <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-            SALE
+          <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded shadow-sm">
+            -{discountPercent}%
           </span>
         )}
       </div>
 
       {/* Hình ảnh */}
-      <div className="h-48 w-full bg-gray-200" onClick={handleClick}>
+      <div className="h-52 w-full bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
         <img
           src={imageUrl}
           alt={name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           onError={(e) => {
             e.target.src = "/placeholder-product.png";
           }}
+          onClick={handleClick}
         />
       </div>
 
       {/* Thông tin sản phẩm */}
       <div className="p-4">
         <h3
-          className="text-lg font-semibold mb-1 line-clamp-2 hover:text-indigo-600 transition"
+          className="text-lg font-semibold mb-1 line-clamp-2 hover:text-indigo-600 hover:underline transition"
           onClick={handleClick}
         >
           {name}
         </h3>
-        <p className="text-gray-600 text-sm mb-2 line-clamp-2">{description}</p>
+        <p className="text-gray-600 text-sm mb-3 line-clamp-1">{description}</p>
 
         {/* Rating */}
         {averageRating > 0 && (
-          <div className="flex items-center gap-1 mb-2">
+          <div className="flex items-center gap-1 mb-3">
             <div className="flex items-center">
               {[...Array(5)].map((_, i) => (
                 <svg
@@ -106,19 +108,27 @@ export default function ProductCard({ product }) {
           <div>
             {sale ? (
               <div className="flex flex-col">
-                <span className="text-gray-500 line-through text-sm">
+                <span className="text-gray-400 line-through text-sm">
                   {price.toLocaleString("vi-VN")}₫
                 </span>
-                <span className="text-indigo-600 font-bold">
+                <span className="text-indigo-600 font-bold text-lg">
                   {discountPrice.toLocaleString("vi-VN")}₫
                 </span>
               </div>
             ) : (
-              <span className="text-indigo-600 font-bold">
+              <span className="text-indigo-600 font-bold text-lg">
                 {price.toLocaleString("vi-VN")}₫
               </span>
             )}
           </div>
+
+          {/* CTA */}
+          <button
+            onClick={handleClick}
+            className="hidden group-hover:inline-block px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-lg shadow hover:bg-indigo-700 transition"
+          >
+            Xem chi tiết
+          </button>
         </div>
       </div>
     </div>

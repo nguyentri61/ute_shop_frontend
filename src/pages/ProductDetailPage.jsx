@@ -57,7 +57,7 @@ export default function ProductDetailPage() {
     );
 
   const { name, description, category, images, variants } = product;
-  const { color, size, price, discountPrice, stock } = selectedVariant;
+  const { price, discountPrice, stock } = selectedVariant;
 
   // Lấy danh sách màu duy nhất
   const uniqueColors = [...new Set(variants.map((v) => v.color))];
@@ -84,8 +84,6 @@ export default function ProductDetailPage() {
         toast.error("Lỗi khi thêm giỏ hàng: " + (err?.message || err));
       });
   };
-
-
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-indigo-50 to-white py-6 px-2 sm:px-6">
@@ -135,12 +133,16 @@ export default function ProductDetailPage() {
           {/* Thêm lượt đánh giá và đã bán ở đây */}
           <div className="flex items-center gap-4 mb-4">
             <p className="text-gray-600 text-sm sm:text-base">
-              <span className="font-medium text-indigo-700">{product.reviewCount}</span>{" "}
+              <span className="font-medium text-indigo-700">
+                {product.reviewCount}
+              </span>{" "}
               lượt đánh giá
             </p>
             <p className="text-gray-600 text-sm sm:text-base">
               Đã bán:{" "}
-              <span className="font-medium text-indigo-700">{product.totalSold}</span>
+              <span className="font-medium text-indigo-700">
+                {product.totalSold}
+              </span>
             </p>
           </div>
           <p className="text-gray-700 text-base sm:text-lg leading-relaxed mb-4 sm:mb-6">
@@ -162,10 +164,11 @@ export default function ProductDetailPage() {
                       const firstSize = variants.find((v) => v.color === c);
                       setSelectedVariant(firstSize);
                     }}
-                    className={`px-3 py-1 rounded-lg border ${selectedColor === c
-                      ? "bg-indigo-600 text-white border-indigo-600"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
+                    className={`px-3 py-1 rounded-lg border ${
+                      selectedColor === c
+                        ? "bg-indigo-600 text-white border-indigo-600"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
                   >
                     {c}
                   </button>
@@ -185,10 +188,11 @@ export default function ProductDetailPage() {
                   <button
                     key={v.id + "-size"}
                     onClick={() => setSelectedVariant(v)}
-                    className={`px-3 py-1 rounded-lg border ${selectedVariant.id === v.id
-                      ? "bg-indigo-600 text-white border-indigo-600"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
+                    className={`px-3 py-1 rounded-lg border ${
+                      selectedVariant.id === v.id
+                        ? "bg-indigo-600 text-white border-indigo-600"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
                   >
                     {v.size}
                   </button>
@@ -196,7 +200,6 @@ export default function ProductDetailPage() {
               </div>
             </div>
           )}
-
 
           {/* Giá */}
           <div className="mb-4 sm:mb-6 flex items-center gap-4">
@@ -218,8 +221,8 @@ export default function ProductDetailPage() {
 
           {/* Tồn kho */}
           <p className="mb-4 sm:mb-6 text-gray-600 text-sm sm:text-base">
-            <span className="font-medium text-indigo-700">{stock}</span> sản phẩm
-            còn lại
+            <span className="font-medium text-indigo-700">{stock}</span> sản
+            phẩm còn lại
           </p>
 
           {/* Selector số lượng */}
