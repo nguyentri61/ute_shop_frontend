@@ -257,7 +257,6 @@ export default function CheckoutCOD() {
                         onChange={(e) => setForm({ ...form, shipping: e.target.value })}
                         options={[
                             { value: "Giao hàng nhanh", label: "Giao hàng nhanh" },
-                            { value: "Giao hàng tiết kiệm", label: "Giao hàng tiết kiệm" },
                         ]}
                     />
 

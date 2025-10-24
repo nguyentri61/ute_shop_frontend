@@ -157,11 +157,10 @@ export default function MyOrdersDetailPage() {
                           className="flex items-start gap-4 relative"
                         >
                           <div
-                            className={`w-8 h-8 rounded-full ${
-                              index === 0
-                                ? "bg-gradient-to-r from-blue-500 to-purple-500"
-                                : "bg-gray-300"
-                            } flex items-center justify-center z-10 shadow-md`}
+                            className={`w-8 h-8 rounded-full ${index === 0
+                              ? "bg-gradient-to-r from-blue-500 to-purple-500"
+                              : "bg-gray-300"
+                              } flex items-center justify-center z-10 shadow-md`}
                           >
                             <HistoryIcon className="w-4 h-4 text-white" />
                           </div>
@@ -217,10 +216,10 @@ export default function MyOrdersDetailPage() {
                           <div className="flex items-center gap-2">
                             {item.variant.discountPrice <
                               item.variant.price && (
-                              <span className="text-sm text-gray-400 line-through">
-                                {formatCurrency(item.variant.price)}
-                              </span>
-                            )}
+                                <span className="text-sm text-gray-400 line-through">
+                                  {formatCurrency(item.variant.price)}
+                                </span>
+                              )}
                             <span className="text-lg font-bold text-blue-600">
                               {formatCurrency(
                                 item.variant.discountPrice || item.price
@@ -233,8 +232,8 @@ export default function MyOrdersDetailPage() {
                               {Math.round(
                                 (1 -
                                   item.variant.discountPrice /
-                                    item.variant.price) *
-                                  100
+                                  item.variant.price) *
+                                100
                               )}
                               %
                             </span>
@@ -252,12 +251,20 @@ export default function MyOrdersDetailPage() {
                   <div className="flex justify-between text-gray-600">
                     <span>Tạm tính</span>
                     <span className="font-medium">
-                      {formatCurrency(orderDetail.total)}
+                      {formatCurrency(orderDetail.subTotal)}
                     </span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Phí vận chuyển</span>
-                    <span className="font-medium text-green-600">Miễn phí</span>
+                    <span className="font-medium text-green-600">{formatCurrency(orderDetail.shippingFee)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Giảm giá sản phẩm</span>
+                    <span className="font-medium text-green-600">-{formatCurrency(orderDetail.productDiscount)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Giảm giá vận chuyển</span>
+                    <span className="font-medium text-green-600">-{formatCurrency(orderDetail.shippingDiscount)}</span>
                   </div>
                   <div className="flex justify-between items-center pt-3 border-t-2 border-gray-200">
                     <span className="text-lg font-bold text-gray-800">
