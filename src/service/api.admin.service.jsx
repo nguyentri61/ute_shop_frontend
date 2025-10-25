@@ -1,6 +1,10 @@
 // src/service/api.admin.service.jsx
 import axios from "./axios.customize";
 
+/* ============================
+   Orders / Dashboard / Admin
+   ============================ */
+
 const getAllOrders = () => {
   const API = "/orders/admin/all";
   return axios.get(API);
@@ -16,81 +20,96 @@ const getDashboardStats = () => {
   return axios.get(API);
 };
 
-/**
- * Doanh thu tuần (T2..CN)
- * @param {Object} [opts]
- * @param {string} [opts.status="DELIVERED"] - Trạng thái đơn để tính doanh thu
- */
 const getWeeklySales = (opts = {}) => {
   const { status = "DELIVERED" } = opts;
   const API = `/admin/dashboard/weekly-sales`;
   return axios.get(API, { params: { status } });
 };
 
-/**
- * Cơ cấu doanh thu theo danh mục (Pie chart)
- * @param {Object} [opts]
- * @param {string} [opts.status="DELIVERED"] - Trạng thái đơn
- * @param {"7d"|"30d"|"90d"|"month"} [opts.range="30d"] - Khoảng thời gian nhanh
- * @param {string} [opts.start] - YYYY-MM-DD (ưu tiên hơn range nếu có)
- * @param {string} [opts.end]   - YYYY-MM-DD (ưu tiên hơn range nếu có)
- */
 const getCategoryShare = (opts = {}) => {
   const { status = "DELIVERED", range = "30d", start, end } = opts;
   const API = `/admin/dashboard/category-share`;
   return axios.get(API, { params: { status, range, start, end } });
 };
 
-/**
- * Top sản phẩm bán chạy
- * @param {number} [limit=6]
- */
 const getBestSellingProducts = (limit = 6) => {
   const API = `/admin/dashboard/best-selling`;
   return axios.get(API, { params: { limit } });
 };
 
 /* ============================
-   Admin categories API (new)
+   Admin categories
    ============================ */
 
 /**
  * GET /admin/categories?q=&page=&size=
- * @param {Object} params
- * @param {string} [params.q] - tìm theo tên
- * @param {number} [params.page=1]
- * @param {number} [params.size=10]
+ * params: { q, page, size }
  */
 const getAdminCategories = (params = {}) => {
   const API = "/admin/categories";
   return axios.get(API, { params });
 };
 
-/** GET /admin/categories/:id */
 const getAdminCategoryById = (id) => {
   const API = `/admin/categories/${id}`;
   return axios.get(API);
 };
 
-/** POST /admin/categories { name, icon? } */
 const createAdminCategory = (payload) => {
   const API = "/admin/categories";
   return axios.post(API, payload);
 };
 
-/** PATCH /admin/categories/:id { name?, icon? } */
 const updateAdminCategory = (id, payload) => {
   const API = `/admin/categories/${id}`;
   return axios.patch(API, payload);
 };
 
-/** DELETE /admin/categories/:id */
 const deleteAdminCategory = (id) => {
   const API = `/admin/categories/${id}`;
   return axios.delete(API);
 };
 
+/* ============================
+   Admin users
+   ============================ */
+
+/**
+ * GET /admin/users?q=&role=&start=&end=&page=&size=
+ * opts: { q, role, start, end, page, size }
+ */
+const getAdminUsers = (opts = {}) => {
+  const { q, role, start, end, page = 1, size = 10 } = opts;
+  return axios.get("/admin/users", { params: { q, role, start, end, page, size } });
+};
+
+/** GET /admin/users/:id */
+const getAdminUser = (id) => axios.get(`/admin/users/${id}`);
+
+/** POST /admin/users { email, fullName, phone?, role?, address? } */
+const createAdminUser = (payload) => axios.post("/admin/users", payload);
+
+/** PATCH /admin/users/:id { fullName?, phone?, role?, address?, verified? } */
+const updateAdminUser = (id, payload) => axios.patch(`/admin/users/${id}`, payload);
+
+/**
+ * DELETE /admin/users/:id
+ * NOTE: backend implemented this as a soft-block (blocked=true) — keep using DELETE for admin "remove"
+ */
+const deleteAdminUser = (id) => axios.delete(`/admin/users/${id}`);
+
+/** PATCH /admin/users/:id/unblock  -> mở chặn tài khoản */
+const unblockAdminUser = (id) => axios.patch(`/admin/users/${id}/unblock`);
+
+/** PATCH /admin/users/:id/role -> thay đổi vai trò (body: { role: "ADMIN"|"USER" }) */
+const changeAdminUserRole = (id, role) => axios.patch(`/admin/users/${id}/role`, { role });
+
+/* ============================
+   Exports
+   ============================ */
+
 export {
+  // orders / dashboard
   getAllOrders,
   updateOrderStatusAdmin,
   getDashboardStats,
@@ -104,4 +123,13 @@ export {
   createAdminCategory,
   updateAdminCategory,
   deleteAdminCategory,
+
+  // users
+  getAdminUsers,
+  getAdminUser,
+  createAdminUser,
+  updateAdminUser,
+  deleteAdminUser,
+  unblockAdminUser,
+  changeAdminUserRole,
 };
