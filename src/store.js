@@ -14,6 +14,8 @@ import recentlyViewedReducer from './features/products/recentlyViewedSlice';
 import similarProductsReducer from './features/products/similarProductsSlice';
 import dashboardStatsReducer from './features/admin/dashboardStatsSlice';
 import adminCouponReducer from './features/products/adminCouponSlice';
+import adminCategoriesReducer from "./features/admin/categorySlice";
+
 
 
 export const store = configureStore({
@@ -32,6 +34,7 @@ export const store = configureStore({
         recentlyViewed: recentlyViewedReducer,
         similarProducts: similarProductsReducer,
         dashboardStats: dashboardStatsReducer,
-        adminCoupons: adminCouponReducer
+        adminCoupons: adminCouponReducer,
+        adminCategories: adminCategoriesReducer,
     },
 });

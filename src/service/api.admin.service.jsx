@@ -38,7 +38,6 @@ const getWeeklySales = (opts = {}) => {
 const getCategoryShare = (opts = {}) => {
   const { status = "DELIVERED", range = "30d", start, end } = opts;
   const API = `/admin/dashboard/category-share`;
-  // Nếu có start/end thì backend sẽ ưu tiên chúng thay cho range
   return axios.get(API, { params: { status, range, start, end } });
 };
 
@@ -51,6 +50,46 @@ const getBestSellingProducts = (limit = 6) => {
   return axios.get(API, { params: { limit } });
 };
 
+/* ============================
+   Admin categories API (new)
+   ============================ */
+
+/**
+ * GET /admin/categories?q=&page=&size=
+ * @param {Object} params
+ * @param {string} [params.q] - tìm theo tên
+ * @param {number} [params.page=1]
+ * @param {number} [params.size=10]
+ */
+const getAdminCategories = (params = {}) => {
+  const API = "/admin/categories";
+  return axios.get(API, { params });
+};
+
+/** GET /admin/categories/:id */
+const getAdminCategoryById = (id) => {
+  const API = `/admin/categories/${id}`;
+  return axios.get(API);
+};
+
+/** POST /admin/categories { name, icon? } */
+const createAdminCategory = (payload) => {
+  const API = "/admin/categories";
+  return axios.post(API, payload);
+};
+
+/** PATCH /admin/categories/:id { name?, icon? } */
+const updateAdminCategory = (id, payload) => {
+  const API = `/admin/categories/${id}`;
+  return axios.patch(API, payload);
+};
+
+/** DELETE /admin/categories/:id */
+const deleteAdminCategory = (id) => {
+  const API = `/admin/categories/${id}`;
+  return axios.delete(API);
+};
+
 export {
   getAllOrders,
   updateOrderStatusAdmin,
@@ -58,4 +97,11 @@ export {
   getWeeklySales,
   getCategoryShare,
   getBestSellingProducts,
+
+  // categories
+  getAdminCategories,
+  getAdminCategoryById,
+  createAdminCategory,
+  updateAdminCategory,
+  deleteAdminCategory,
 };
