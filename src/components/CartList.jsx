@@ -7,13 +7,11 @@ import {
     clearSelection,
 } from "../features/order/cartSlice";
 
-/** Utils */
 const formatCurrency = (amount) =>
     typeof amount === "number"
         ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount)
         : "-";
 
-/** Tiny Button component (tách từ MyCartPage) */
 const Button = ({
     children,
     onClick,
@@ -106,6 +104,10 @@ export default function CartList({
                     const hasDiscount =
                         it.variant?.discountPrice && it.variant.discountPrice < basePrice;
 
+                    const stock = it.variant?.stock ?? 0;
+                    const isOutOfStock = stock <= 0;
+                    const isOverStock = it.quantity > stock;
+
                     return (
                         <li key={it.id} className="py-5 first:pt-0 last:pb-0">
                             <div className="grid grid-cols-[24px_96px_1fr_auto] items-center gap-4">
@@ -114,12 +116,13 @@ export default function CartList({
                                     checked={selectedCartItemIds.includes(it.id)}
                                     onChange={() => dispatch(toggleSelectItem(it.id))}
                                     className="h-5 w-5 accent-indigo-600"
+                                    disabled={isOutOfStock}
                                 />
 
                                 <img
                                     src={product.image ?? "/placeholder-product.png"}
                                     alt={product.name ?? "Sản phẩm"}
-                                    className="h-24 w-24 rounded-xl border border-slate-100 object-cover shadow-sm"
+                                    className={`h-24 w-24 rounded-xl border border-slate-100 object-cover shadow-sm ${isOutOfStock ? "opacity-60" : ""}`}
                                 />
 
                                 <div className="min-w-0">
@@ -154,21 +157,36 @@ export default function CartList({
                                         </div>
                                     </div>
 
-                                    <div className="mt-3 flex flex-wrap items-center gap-3">
-                                        <QuantityStepper
-                                            value={it.quantity}
-                                            onIncrease={() => handleIncrease(it)}
-                                            onDecrease={() => handleDecrease(it)}
-                                            disabled={updatingItemId === it.id}
-                                        />
-                                        <Button
-                                            variant="danger"
-                                            className="!px-3"
-                                            onClick={() => handleRemove(it.id)}
-                                            disabled={updatingItemId === it.id}
-                                        >
-                                            Xóa
-                                        </Button>
+                                    <div className="mt-3 flex flex-col gap-1">
+                                        <div className="flex items-center gap-3">
+                                            <QuantityStepper
+                                                value={it.quantity}
+                                                onIncrease={() => handleIncrease(it)}
+                                                onDecrease={() => handleDecrease(it)}
+                                                disabled={updatingItemId === it.id || isOutOfStock}
+                                                max={stock}
+                                            />
+                                            <Button
+                                                variant="danger"
+                                                className="!px-3"
+                                                onClick={() => handleRemove(it.id)}
+                                                disabled={updatingItemId === it.id}
+                                            >
+                                                Xóa
+                                            </Button>
+                                        </div>
+
+                                        {/* ⚠️ Cảnh báo tồn kho */}
+                                        {isOutOfStock && (
+                                            <p className="text-xs text-rose-600 mt-1">
+                                                Sản phẩm đã hết hàng
+                                            </p>
+                                        )}
+                                        {!isOutOfStock && isOverStock && (
+                                            <p className="text-xs text-amber-600 mt-1">
+                                                Chỉ còn {stock} sản phẩm trong kho
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
 
