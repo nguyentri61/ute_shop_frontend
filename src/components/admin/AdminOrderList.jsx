@@ -232,6 +232,12 @@ const AdminOrderList = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Mã đơn
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Người dùng
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Ngày đặt
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -277,7 +283,7 @@ const AdminOrderList = () => {
                         <div className="text-sm text-gray-900">{formatDate(order.createdAt)}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900">{formatCurrency(order.totalPrice)}</div>
+                        <div className="text-sm font-semibold text-gray-900">{formatCurrency(order.total)}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-2">
@@ -375,36 +381,98 @@ const AdminOrderList = () => {
                                 Sản phẩm đã đặt
                               </h5>
                               <div className="bg-gray-50 rounded-lg p-4">
-                                <div className="space-y-3">
-                                  {order.items?.map((item, index) => (
-                                    <div key={item.id || index} className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-200">
-                                      <div className="flex items-center space-x-4">
-                                        <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                                          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                                          </svg>
+                                <div className="bg-gray-50 rounded-lg p-4">
+                                  {/* Danh sách sản phẩm */}
+                                  <div className="space-y-3">
+                                    {order.items?.map((item, index) => (
+                                      <div
+                                        key={item.id || index}
+                                        className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-200"
+                                      >
+                                        <div className="flex items-center space-x-4">
+                                          <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                                            <svg
+                                              className="w-6 h-6 text-gray-400"
+                                              fill="none"
+                                              stroke="currentColor"
+                                              viewBox="0 0 24 24"
+                                            >
+                                              <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth="2"
+                                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                                              />
+                                            </svg>
+                                          </div>
+                                          <div>
+                                            <h6 className="font-medium text-gray-900">
+                                              {item.product?.name || "Sản phẩm"}
+                                            </h6>
+                                            <p className="text-sm text-gray-500">Số lượng: {item.quantity}</p>
+                                          </div>
                                         </div>
-                                        <div>
-                                          <h6 className="font-medium text-gray-900">{item.product?.name || "Sản phẩm"}</h6>
-                                          <p className="text-sm text-gray-500">Số lượng: {item.quantity}</p>
+                                        <div className="text-right">
+                                          <div className="font-semibold text-gray-900">
+                                            {formatCurrency(
+                                              (item.product?.discountPrice || item.product?.price || 0) *
+                                              item.quantity
+                                            )}
+                                          </div>
+                                          <div className="text-sm text-gray-500">
+                                            {formatCurrency(item.product?.discountPrice || item.product?.price || 0)}{" "}
+                                            x {item.quantity}
+                                          </div>
                                         </div>
                                       </div>
-                                      <div className="text-right">
-                                        <div className="font-semibold text-gray-900">
-                                          {formatCurrency((item.product?.discountPrice || item.product?.price || 0) * item.quantity)}
-                                        </div>
-                                        <div className="text-sm text-gray-500">
-                                          {formatCurrency(item.product?.discountPrice || item.product?.price || 0)} x {item.quantity}
-                                        </div>
-                                      </div>
+                                    ))}
+                                  </div>
+
+                                  {/* Tổng hợp phí & giảm giá */}
+                                  <div className="mt-6 border-t border-gray-200 pt-4 space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-600">Tạm tính</span>
+                                      <span className="font-medium text-gray-900">
+                                        {formatCurrency(order.subTotal || 0)}
+                                      </span>
                                     </div>
-                                  ))}
+
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-600">Phí vận chuyển</span>
+                                      <span className="font-medium text-gray-900">
+                                        {formatCurrency(order.shippingFee || 0)}
+                                      </span>
+                                    </div>
+
+                                    {order.shippingDiscount > 0 && (
+                                      <div className="flex justify-between text-emerald-600">
+                                        <span>Giảm phí vận chuyển</span>
+                                        <span>-{formatCurrency(order.shippingDiscount)}</span>
+                                      </div>
+                                    )}
+
+                                    {order.productDiscount > 0 && (
+                                      <div className="flex justify-between text-emerald-600">
+                                        <span>Giảm giá sản phẩm</span>
+                                        <span>-{formatCurrency(order.productDiscount)}</span>
+                                      </div>
+                                    )}
+
+                                    {/* Tổng cộng */}
+                                    <div className="flex justify-between border-t border-gray-200 pt-3 mt-2">
+                                      <span className="text-base font-semibold text-gray-900">Tổng cộng</span>
+                                      <span className="text-lg font-bold text-indigo-700">
+                                        {formatCurrency(order.total || 0)}
+                                      </span>
+                                    </div>
+                                  </div>
                                 </div>
+
 
                                 <div className="border-t border-gray-200 mt-4 pt-4">
                                   <div className="flex justify-between items-center text-lg font-semibold">
                                     <span>Tổng cộng:</span>
-                                    <span className="text-indigo-600">{formatCurrency(order.totalPrice)}</span>
+                                    <span className="text-indigo-600">{formatCurrency(order.total)}</span>
                                   </div>
                                 </div>
                               </div>
