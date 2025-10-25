@@ -11,10 +11,9 @@ import {
   MagnifyingGlassIcon,
   ChevronDownIcon,
   UserCircleIcon,
-  ArrowRightOnRectangleIcon,
   Bars3Icon,
   XMarkIcon,
-
+  PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
 import AdminOrderList from "../components/admin/AdminOrderList";
 import AdminSidebar from "../components/admin/AdminSidebar";
@@ -29,6 +28,8 @@ import { LogOut } from "lucide-react";
 import NotificationBell from "../components/NotificationBell";
 import DashboardPage from "../components/admin/DashBoard";
 import AdminVoucher from "../components/admin/AdminVoucher";
+import AdminChatList from "../components/admin/AdminChatList";
+import AdminChatPage from "../components/admin/AdminChatPage";
 
 const AdminPage = () => {
   const dispatch = useDispatch();
@@ -45,7 +46,7 @@ const AdminPage = () => {
     { id: "vouchers", label: "Mã giảm giá", icon: TagIcon },
     { id: "categories", label: "Danh mục", icon: TagIcon },
     { id: "settings", label: "Cài đặt", icon: Cog6ToothIcon },
-
+    { id: "chat", label: "Chăm sóc khách hàng", icon: PaperAirplaneIcon },
   ];
 
   const handleLogout = () => {
@@ -71,8 +72,9 @@ const AdminPage = () => {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         <div className="flex h-full flex-col">
           {/* Logo */}
@@ -104,15 +106,17 @@ const AdminPage = () => {
                     setActiveTab(item.id);
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${isActive
-                    ? "bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                    }`}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                    isActive
+                      ? "bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
                 >
                   <div className="flex items-center space-x-3">
                     <Icon
-                      className={`w-5 h-5 ${isActive ? "text-indigo-500" : "text-gray-400"
-                        }`}
+                      className={`w-5 h-5 ${
+                        isActive ? "text-indigo-500" : "text-gray-400"
+                      }`}
                     />
                     <span>{item.label}</span>
                   </div>
@@ -235,19 +239,15 @@ const AdminPage = () => {
 
         {/* Main content area */}
         <main className="p-6">
-          {activeTab === "dashboard" && (
-            <DashboardPage />
-          )}
+          {activeTab === "dashboard" && <DashboardPage />}
           {activeTab === "orders" && <AdminOrderList />}
           {activeTab === "products" && <AdminProductList />}
           {activeTab === "users" && <AdminUserList />}
           {activeTab === "categories" && <AdminCategoryList />}
-
+          {activeTab === "chat" && <AdminChatPage />}
           {activeTab === "settings" && (
             <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4">
-                Cài đặt hệ thống
-              </h3>
+              <h3 className="text-lg font-semibold mb-4">Cài đặt hệ thống</h3>
               <p className="text-gray-600">
                 Trang cài đặt đang được phát triển.
               </p>

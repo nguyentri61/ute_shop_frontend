@@ -1,11 +1,14 @@
 // src/components/AdminRoute.jsx
 import { Navigate, Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
+import ChatWidget from "./ChatWidget";
 
 // Component kiểm tra quyền admin
 function AdminRoute() {
-  const { user, loading, isAuthenticated } = useSelector((state) => state.login);
-  
+  const { user, loading, isAuthenticated } = useSelector(
+    (state) => state.login
+  );
+
   // Nếu không có xác thực thì redirect về login
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -30,7 +33,12 @@ function AdminRoute() {
   }
 
   // Nếu là admin thì render Outlet
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+      {/* <ChatWidget /> */}
+    </>
+  );
 }
 
 export default AdminRoute;
