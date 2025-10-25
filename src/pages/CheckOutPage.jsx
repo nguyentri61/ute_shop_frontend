@@ -126,6 +126,7 @@ export default function CheckoutCOD() {
                 navigate("/orders");
             })
             .catch((err) => {
+                toast.error(String(err));
                 message.error(err || "Có lỗi xảy ra, vui lòng thử lại!");
             });
     };

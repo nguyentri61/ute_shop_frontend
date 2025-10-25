@@ -30,15 +30,11 @@ export default function ProductDetailPage() {
         setProduct(res.data);
 
         if (res.data.variants && res.data.variants.length > 0) {
-          // chọn mặc định variant đầu tiên
           setSelectedVariant(res.data.variants[0]);
           setSelectedColor(res.data.variants[0].color);
         }
 
-        // Thêm sản phẩm vào danh sách đã xem
         dispatch(addToRecentlyViewed(id));
-
-        // Tải sản phẩm tương tự
         dispatch(fetchSimilarProducts(id));
       } catch (err) {
         console.error(err);
@@ -59,10 +55,8 @@ export default function ProductDetailPage() {
   const { name, description, category, images, variants } = product;
   const { price, discountPrice, stock } = selectedVariant;
 
-  // Lấy danh sách màu duy nhất
+  // Danh sách màu duy nhất
   const uniqueColors = [...new Set(variants.map((v) => v.color))];
-
-  // Lọc size theo màu đã chọn
   const sizesByColor = variants.filter((v) => v.color === selectedColor);
 
   const handleIncrease = () => {
@@ -72,7 +66,10 @@ export default function ProductDetailPage() {
     if (quantity > 1) setQuantity(quantity - 1);
   };
   const handleAddToCart = () => {
-    if (!selectedVariant) return;
+    if (stock <= 0) {
+      toast.error("Sản phẩm đã hết hàng!");
+      return;
+    }
 
     dispatch(addToCart({ variantId: selectedVariant.id, quantity }))
       .unwrap()
@@ -84,6 +81,8 @@ export default function ProductDetailPage() {
         toast.error("Lỗi khi thêm giỏ hàng: " + (err?.message || err));
       });
   };
+
+  const isOutOfStock = stock <= 0;
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-indigo-50 to-white py-6 px-2 sm:px-6">
@@ -130,7 +129,7 @@ export default function ProductDetailPage() {
               {category?.name || "N/A"}
             </span>
           </p>
-          {/* Thêm lượt đánh giá và đã bán ở đây */}
+
           <div className="flex items-center gap-4 mb-4">
             <p className="text-gray-600 text-sm sm:text-base">
               <span className="font-medium text-indigo-700">
@@ -145,6 +144,7 @@ export default function ProductDetailPage() {
               </span>
             </p>
           </div>
+
           <p className="text-gray-700 text-base sm:text-lg leading-relaxed mb-4 sm:mb-6">
             {description}
           </p>
@@ -164,11 +164,10 @@ export default function ProductDetailPage() {
                       const firstSize = variants.find((v) => v.color === c);
                       setSelectedVariant(firstSize);
                     }}
-                    className={`px-3 py-1 rounded-lg border ${
-                      selectedColor === c
+                    className={`px-3 py-1 rounded-lg border ${selectedColor === c
                         ? "bg-indigo-600 text-white border-indigo-600"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
+                      }`}
                   >
                     {c}
                   </button>
@@ -188,11 +187,10 @@ export default function ProductDetailPage() {
                   <button
                     key={v.id + "-size"}
                     onClick={() => setSelectedVariant(v)}
-                    className={`px-3 py-1 rounded-lg border ${
-                      selectedVariant.id === v.id
+                    className={`px-3 py-1 rounded-lg border ${selectedVariant.id === v.id
                         ? "bg-indigo-600 text-white border-indigo-600"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
+                      }`}
                   >
                     {v.size}
                   </button>
@@ -220,9 +218,10 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Tồn kho */}
-          <p className="mb-4 sm:mb-6 text-gray-600 text-sm sm:text-base">
-            <span className="font-medium text-indigo-700">{stock}</span> sản
-            phẩm còn lại
+          <p className={`mb-4 sm:mb-6 text-sm sm:text-base ${isOutOfStock ? "text-rose-600 font-semibold" : "text-gray-600"}`}>
+            {isOutOfStock
+              ? "Sản phẩm đã hết hàng"
+              : `${stock} sản phẩm còn lại`}
           </p>
 
           {/* Selector số lượng */}
@@ -230,7 +229,7 @@ export default function ProductDetailPage() {
             <button
               onClick={handleDecrease}
               className="w-10 h-10 flex items-center justify-center bg-indigo-100 rounded-full hover:bg-indigo-200 transition-colors text-indigo-700 font-bold text-lg disabled:opacity-50 shadow"
-              disabled={quantity <= 1}
+              disabled={quantity <= 1 || isOutOfStock}
             >
               -
             </button>
@@ -243,21 +242,31 @@ export default function ProductDetailPage() {
             <button
               onClick={handleIncrease}
               className="w-10 h-10 flex items-center justify-center bg-indigo-100 rounded-full hover:bg-indigo-200 transition-colors text-indigo-700 font-bold text-lg disabled:opacity-50 shadow"
-              disabled={quantity >= stock}
+              disabled={quantity >= stock || isOutOfStock}
             >
               +
             </button>
           </div>
 
-          {/* Add to Cart */}
-          <button
-            onClick={handleAddToCart}
-            className="w-full sm:w-64 bg-gradient-to-r from-indigo-500 to-indigo-700 text-white font-semibold text-lg py-3 px-6 rounded-xl hover:scale-105 transition-all duration-300 shadow-lg mt-2"
-          >
-            Thêm vào giỏ hàng
-          </button>
+          {/* Nút Thêm giỏ hàng */}
+          {isOutOfStock ? (
+            <button
+              disabled
+              className="w-full sm:w-64 bg-gray-300 text-gray-500 font-semibold text-lg py-3 px-6 rounded-xl cursor-not-allowed shadow-inner mt-2"
+            >
+              Sản phẩm đã hết hàng
+            </button>
+          ) : (
+            <button
+              onClick={handleAddToCart}
+              className="w-full sm:w-64 bg-gradient-to-r from-indigo-500 to-indigo-700 text-white font-semibold text-lg py-3 px-6 rounded-xl hover:scale-105 transition-all duration-300 shadow-lg mt-2"
+            >
+              Thêm vào giỏ hàng
+            </button>
+          )}
         </div>
       </div>
+
       {/* Phần sản phẩm tương tự */}
       <div className="mt-8">
         <SimilarProducts productId={id} />
@@ -266,7 +275,7 @@ export default function ProductDetailPage() {
   );
 }
 
-// Component hiển thị sản phẩm tương tự
+// Component sản phẩm tương tự
 function SimilarProducts({ productId }) {
   const dispatch = useDispatch();
   const { products, loading } = useSelector((state) => state.similarProducts);
