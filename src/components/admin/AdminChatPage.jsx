@@ -1,28 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import AdminChatList from "./AdminChatList";
 import AdminChatBox from "./AdminChatBox";
 import { MessageSquare, Loader2 } from "lucide-react";
-import { getAllConversations } from "../../service/api.conversation.service";
+// import { markMessagesAsRead } from "../../service/api.conversation.service";
 
 const AdminChatPage = () => {
   const [selectedConversation, setSelectedConversation] = useState(null);
-  const [conversations, setConversations] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const fetchConversations = async () => {
-    try {
-      setLoading(true);
-      const res = await getAllConversations();
-      setConversations(res.data || []);
-    } catch (err) {
-      console.error("❌ Lỗi tải hội thoại:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    fetchConversations();
-  }, []);
+  const [loading, setLoading] = useState(false);
 
   return (
     <div className="flex h-[700px] w-full max-w-6xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
@@ -35,13 +20,13 @@ const AdminChatPage = () => {
 
         <div className="flex-1 overflow-y-auto">
           <AdminChatList
-            onSelectConversation={(conv) => {
+            onSelectConversation={async (conv) => {
               setLoading(true);
               setSelectedConversation(conv);
+
               setTimeout(() => setLoading(false), 500);
             }}
             selectedConversation={selectedConversation}
-            conversations={conversations}
           />
         </div>
       </div>
@@ -57,7 +42,7 @@ const AdminChatPage = () => {
           ) : (
             <AdminChatBox
               conversation={selectedConversation}
-              setConversations={setConversations}
+              // setConversations={setConversations}
             />
           )
         ) : (

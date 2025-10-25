@@ -186,165 +186,225 @@ const ChatWidget = () => {
   };
 
   return (
-    <div className="fixed z-9999 bottom-6 right-6">
+    <div className="fixed z-50 bottom-6 right-6">
       {!open ? (
         <div className="relative">
           <button
             onClick={async () => {
-              await markMessagesAsRead(conversation.id);
+              if (conversation?.id) {
+                try {
+                  await markMessagesAsRead(conversation.id);
+                } catch {
+                  console.error("Failed to mark messages as read");
+                }
+              }
               setOpen(true);
             }}
-            className="bg-blue-600 text-white p-3 rounded-full shadow-lg"
+            className="bg-blue-600 text-white p-3 rounded-full shadow-lg flex items-center justify-center"
+            aria-label="Open chat"
           >
-            <MessageCircle size={24} />
+            <MessageCircle size={22} />
           </button>
+
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-semibold rounded-full px-2 py-0.5">
-              {unreadCount > 99 ? "99" : unreadCount}
+              {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
         </div>
       ) : (
-        <div className="w-96 sm:w-[520px] h-[520px] sm:h-[640px] bg-white shadow-2xl rounded-xl flex flex-col overflow-hidden border border-gray-200">
+        <div className="w-96 sm:w-[560px] h-[560px] sm:h-[720px] bg-white shadow-2xl rounded-xl flex flex-col overflow-hidden border border-gray-200">
           {/* Header */}
-          <div className="bg-blue-600 text-white flex justify-between items-center p-3">
-            <span>Hỗ trợ khách hàng</span>
-            <button
-              onClick={async () => {
-                await markMessagesAsRead(conversation.id);
-                setOpen(false);
-              }}
-            >
-              <X />
-            </button>
-          </div>
-
-          {/* Nội dung chat */}
-          <div
-            ref={chatContainerRef}
-            className="flex-1 p-3 overflow-y-auto space-y-2 bg-gray-50"
-          >
-            {conversation?.messages?.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${
-                  msg.senderId === userId ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div
-                  className={`max-w-[70%] p-2 rounded-lg text-sm ${
-                    msg.senderId === userId
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-black"
-                  }`}
-                >
-                  {msg.mediaUrl ? (
-                    // nếu msg.type === 'VIDEO' hoặc url có đuôi video -> hiển thị video, ngược lại hiển thị ảnh
-                    msg.type === "VIDEO" ||
-                    /\.(mp4|webm|ogg|mov|mkv)(\?.*)?$/i.test(msg.mediaUrl) ? (
-                      <video
-                        src={
-                          msg.mediaUrl.startsWith("http")
-                            ? msg.mediaUrl
-                            : `http://localhost:5000${msg.mediaUrl}`
-                        }
-                        controls
-                        className="rounded-lg max-h-40 w-full object-contain"
-                      />
-                    ) : (
-                      <img
-                        src={
-                          msg.mediaUrl.startsWith("http")
-                            ? msg.mediaUrl
-                            : `http://localhost:5000${msg.mediaUrl}`
-                        }
-                        alt="attachment"
-                        className="rounded-lg max-h-40 w-full object-contain"
-                      />
-                    )
-                  ) : (
-                    msg.content
-                  )}
-                  {/* hiển thị badge "mới" nếu chưa đọc */}
-                  {!msg.isRead && msg.senderId !== userId && (
-                    <span className="ml-2 inline-block bg-red-100 text-red-700 text-[10px] px-1 rounded ml-2">
-                      mới
-                    </span>
-                  )}
+          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-sm font-semibold">
+                {conversation?.user?.fullName
+                  ? conversation.user.fullName.slice(0, 1).toUpperCase()
+                  : "U"}
+              </div>
+              <div>
+                <div className="text-sm font-semibold">
+                  {conversation?.user?.fullName ||
+                    conversation?.user?.email ||
+                    "Khách hàng"}
+                </div>
+                <div className="text-xs opacity-80">
+                  {conversation?.user?.email || ""}
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
 
-          {/* Gửi tin nhắn */}
-          <div className="p-3 border-t flex items-center space-x-2 bg-white">
-            {" "}
             <div className="flex items-center gap-2">
-              {" "}
               <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
-                title="Gửi ảnh"
+                onClick={async () => {
+                  if (conversation?.id) {
+                    try {
+                      await markMessagesAsRead(conversation.id);
+                    } catch {
+                      console.error("Failed to mark messages as read");
+                    }
+                  }
+                  setOpen(false);
+                }}
+                className="p-2 rounded-md bg-white/20 hover:bg-white/30"
+                title="Đóng"
               >
-                <ImageIcon size={20} />
+                <X />
               </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                accept="image/*"
-                onChange={handleFileChange}
-              />
-              <button
-                type="button"
-                onClick={() => fileVideoInputRef.current?.click()}
-                className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
-                title="Gửi video"
-              >
-                <Video size={20} />
-              </button>
-              <input
-                ref={fileVideoInputRef}
-                type="file"
-                className="hidden"
-                accept="video/*"
-                onChange={handleFileChange}
-              />
             </div>
-            <input
-              type="text"
-              className="flex-1 border rounded-lg p-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-              placeholder="Nhập tin nhắn..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-            />
-            <button
-              onClick={handleSendMessage}
-              className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700"
-            >
-              <Send size={18} />
-            </button>
           </div>
 
-          {previewUrl && (
-            <div className="p-2 border-t flex justify-center bg-gray-100">
-              {file?.type?.startsWith("video") ? (
-                <video
-                  src={previewUrl}
-                  controls
-                  className="h-24 rounded-lg w-full object-contain"
+          {/* Messages */}
+          <div
+            ref={chatContainerRef}
+            className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50"
+            style={{ minHeight: 0 }}
+          >
+            {conversation?.messages?.length === 0 && (
+              <div className="text-center text-gray-400 mt-6">
+                Chưa có tin nhắn
+              </div>
+            )}
+
+            {conversation?.messages?.map((msg) => {
+              const isOwn = msg.senderId === userId;
+              return (
+                <div
+                  key={msg.id || `${msg.createdAt}-${Math.random()}`}
+                  className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
+                >
+                  <div className={`max-w-[78%]`}>
+                    <div
+                      className={`inline-block px-4 py-2 rounded-2xl shadow-sm break-words ${
+                        isOwn
+                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+                          : "bg-white border border-gray-200 text-gray-800"
+                      }`}
+                    >
+                      {msg.mediaUrl ? (
+                        msg.type === "VIDEO" ||
+                        /\.(mp4|webm|ogg|mov|mkv)(\?.*)?$/i.test(
+                          msg.mediaUrl
+                        ) ? (
+                          <video
+                            src={
+                              msg.mediaUrl.startsWith("http")
+                                ? msg.mediaUrl
+                                : `http://localhost:5000${msg.mediaUrl}`
+                            }
+                            controls
+                            className="rounded-md max-h-64 w-full object-contain"
+                          />
+                        ) : (
+                          <img
+                            src={
+                              msg.mediaUrl.startsWith("http")
+                                ? msg.mediaUrl
+                                : `http://localhost:5000${msg.mediaUrl}`
+                            }
+                            alt="attachment"
+                            className="rounded-md max-h-64 w-full object-contain"
+                          />
+                        )
+                      ) : (
+                        <div className="whitespace-pre-wrap">{msg.content}</div>
+                      )}
+                    </div>
+
+                    <div
+                      className={`text-[11px] mt-1 ${
+                        isOwn ? "text-right" : ""
+                      } text-gray-400`}
+                    >
+                      {new Date(msg.createdAt).toLocaleTimeString("vi-VN", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                      {!msg.isRead && !isOwn && (
+                        <span className="ml-2 inline-block bg-red-100 text-red-700 text-[10px] px-1 rounded">
+                          mới
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Input area */}
+          <div className="p-4 border-t bg-white">
+            {previewUrl && (
+              <div className="mb-3 p-2 bg-gray-50 rounded-md border border-gray-100">
+                {file?.type?.startsWith("video") ? (
+                  <video
+                    src={previewUrl}
+                    controls
+                    className="rounded-md max-h-40 w-full object-contain"
+                  />
+                ) : (
+                  <img
+                    src={previewUrl}
+                    alt="preview"
+                    className="rounded-md max-h-40 w-full object-contain"
+                  />
+                )}
+              </div>
+            )}
+
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-2 bg-gray-100 hover:bg-gray-200 rounded-md"
+                  title="Gửi ảnh"
+                >
+                  <ImageIcon size={18} />
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleFileChange}
                 />
-              ) : (
-                <img
-                  src={previewUrl}
-                  alt="preview"
-                  className="h-24 rounded-lg object-contain"
+
+                <button
+                  type="button"
+                  onClick={() => fileVideoInputRef.current?.click()}
+                  className="p-2 bg-gray-100 hover:bg-gray-200 rounded-md"
+                  title="Gửi video"
+                >
+                  <Video size={18} />
+                </button>
+                <input
+                  ref={fileVideoInputRef}
+                  type="file"
+                  className="hidden"
+                  accept="video/*"
+                  onChange={handleFileChange}
                 />
-              )}
+              </div>
+
+              <input
+                type="text"
+                className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                placeholder="Nhập tin nhắn..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+              />
+
+              <button
+                onClick={handleSendMessage}
+                className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700"
+                title="Gửi"
+              >
+                <Send size={18} />
+              </button>
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>

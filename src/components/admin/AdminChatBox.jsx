@@ -4,12 +4,13 @@ import { Send, ImageIcon, Video, Paperclip } from "lucide-react";
 import * as jwtDecodePkg from "jwt-decode";
 import {
   getConversationById,
+  markMessagesAsRead,
   sendMessage,
 } from "../../service/api.conversation.service";
 
 const SOCKET_URL = "http://localhost:5000";
 
-export default function AdminChatBox({ conversation, setConversations }) {
+export default function AdminChatBox({ conversation }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [file, setFile] = useState(null);
@@ -44,23 +45,6 @@ export default function AdminChatBox({ conversation, setConversations }) {
     socket.on("new_message", (msg) => {
       console.log("[AdminChatBox] New message:", msg);
       if (msg.conversationId === conversation?.id) {
-        setConversations((prevConvs) => {
-          return prevConvs.map((conv) => {
-            if (
-              conv.id === msg.conversationId &&
-              msg.senderId !== currentUserId
-            ) {
-              return {
-                ...conv,
-                firstMessage: msg,
-
-                updatedAt: msg.createdAt,
-              };
-            }
-            return conv;
-          });
-        });
-
         setMessages((prev) => {
           // tránh trùng lặp tin
           if (prev.some((m) => m.id === msg.id)) return prev;
@@ -75,7 +59,20 @@ export default function AdminChatBox({ conversation, setConversations }) {
     });
 
     return () => {
+      console.log("[AdminChatBox] Cleaning up socket + marking read...");
       socket.disconnect();
+
+      // Gọi async tách biệt
+      (async () => {
+        try {
+          if (conversation?.id) {
+            await markMessagesAsRead(conversation.id);
+            console.log("[AdminChatBox] Messages marked as read");
+          }
+        } catch (err) {
+          console.error("[AdminChatBox] Cleanup error:", err);
+        }
+      })();
     };
   }, [conversation?.id]);
 
@@ -159,45 +156,80 @@ export default function AdminChatBox({ conversation, setConversations }) {
   const API_IMAGE_BASE = import.meta.env.VITE_IMAGE_URL || SOCKET_URL;
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-gradient-to-b from-white to-gray-50 rounded-lg shadow-xl">
       {/* Header */}
-      <div className="p-3 border-b bg-blue-600 text-white">
-        <h3 className="font-semibold">
-          {conversation?.user?.fullName ||
-            conversation?.user?.email ||
-            "Người dùng"}
-        </h3>
+      <div className="flex items-center justify-between p-4 border-b bg-white">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 flex items-center justify-center bg-blue-500 text-white rounded-full text-sm font-semibold">
+            {conversation?.user?.fullName
+              ? conversation.user.fullName.slice(0, 1).toUpperCase()
+              : "U"}
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-gray-800">
+              {conversation?.user?.fullName ||
+                conversation?.user?.email ||
+                "Người dùng"}
+            </div>
+            <div className="text-xs text-gray-500">
+              {conversation?.user?.email || "Không có email"}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={async () => {
+              await markMessagesAsRead(conversation?.id);
+              // giữ logic đóng modal ở chỗ gọi component
+            }}
+            title="Đóng"
+            className="p-2 rounded-md hover:bg-gray-100 text-gray-600"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Messages */}
       <div
         ref={listRef}
-        className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-white to-gray-50 space-y-3"
+        className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-white to-gray-50"
+        style={{ minHeight: 0 }}
       >
         {messages.length === 0 && (
-          <div className="text-center text-gray-400 mt-10">
-            Chưa có tin nhắn
-          </div>
+          <div className="text-center text-gray-400 mt-6">Chưa có tin nhắn</div>
         )}
 
         {messages.map((m) => {
           const isOwn = m.senderId === currentUserId || m.senderId === "admin";
-
           return (
             <div
               key={m.id}
               className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
             >
-              <div className="max-w-[75%]">
+              <div className={`max-w-[75%]`}>
                 <div
-                  className={`inline-block px-4 py-2 rounded-2xl shadow-sm ${
+                  className={`px-4 py-2 rounded-lg shadow-sm break-words ${
                     isOwn
-                      ? "bg-blue-600 text-white"
+                      ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white"
                       : "bg-white border border-gray-200 text-gray-800"
                   }`}
                 >
                   {m.mediaUrl ? (
-                    // nếu m.type === 'VIDEO' hoặc url có đuôi video -> hiển thị video, ngược lại hiển thị ảnh
                     m.type === "VIDEO" ||
                     /\.(mp4|webm|ogg|mov|mkv)(\?.*)?$/i.test(m.mediaUrl) ? (
                       <video
@@ -207,7 +239,7 @@ export default function AdminChatBox({ conversation, setConversations }) {
                             : `http://localhost:5000${m.mediaUrl}`
                         }
                         controls
-                        className="rounded-lg max-h-40 w-full object-contain"
+                        className="rounded-md max-h-64 w-full object-contain"
                       />
                     ) : (
                       <img
@@ -217,17 +249,17 @@ export default function AdminChatBox({ conversation, setConversations }) {
                             : `http://localhost:5000${m.mediaUrl}`
                         }
                         alt="attachment"
-                        className="rounded-lg max-h-40 w-full object-contain"
+                        className="rounded-md max-h-64 w-full object-contain"
                       />
                     )
                   ) : (
-                    m.content
+                    <div className="whitespace-pre-wrap">{m.content}</div>
                   )}
                 </div>
                 <div
                   className={`text-[11px] mt-1 ${
-                    isOwn ? "text-right text-gray-400" : "text-gray-400"
-                  }`}
+                    isOwn ? "text-right" : ""
+                  } text-gray-400`}
                 >
                   {formatTime(m.createdAt)}
                 </div>
@@ -238,60 +270,62 @@ export default function AdminChatBox({ conversation, setConversations }) {
       </div>
 
       {/* Input */}
-      <div className="p-3 border-t bg-white flex flex-col gap-2">
+      <div className="p-4 border-t bg-white">
         {previewUrl && (
-          <div className="p-2 border-t flex justify-center bg-gray-100">
+          <div className="mb-3 p-2 bg-gray-50 rounded-md border border-gray-100">
             {file?.type?.startsWith("video") ? (
               <video
                 src={previewUrl}
                 controls
-                className="h-24 rounded-lg w-full object-contain"
+                className="rounded-md max-h-36 w-full object-contain"
               />
             ) : (
               <img
                 src={previewUrl}
                 alt="preview"
-                className="h-24 rounded-lg object-contain"
+                className="rounded-md max-h-36 w-full object-contain"
               />
             )}
           </div>
         )}
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
-            title="Gửi ảnh"
-          >
-            <ImageIcon size={16} />
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            accept="image/*"
-            onChange={handleFileChange}
-          />
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="p-2 bg-gray-100 hover:bg-gray-200 rounded-md"
+              title="Gửi ảnh"
+            >
+              <ImageIcon size={18} />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={handleFileChange}
+            />
 
-          <button
-            onClick={() => fileVideoInputRef.current?.click()}
-            className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
-            title="Gửi video"
-          >
-            <Video size={16} />
-          </button>
-          <input
-            ref={fileVideoInputRef}
-            type="file"
-            className="hidden"
-            accept="video/*"
-            onChange={handleFileChange}
-          />
+            <button
+              onClick={() => fileVideoInputRef.current?.click()}
+              className="p-2 bg-gray-100 hover:bg-gray-200 rounded-md"
+              title="Gửi video"
+            >
+              <Video size={18} />
+            </button>
+            <input
+              ref={fileVideoInputRef}
+              type="file"
+              className="hidden"
+              accept="video/*"
+              onChange={handleFileChange}
+            />
+          </div>
 
           <input
             type="text"
             placeholder="Nhập tin nhắn..."
-            className="flex-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+            className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
@@ -300,7 +334,7 @@ export default function AdminChatBox({ conversation, setConversations }) {
           <button
             onClick={handleSend}
             disabled={sending || (!input.trim() && !file)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-xl disabled:opacity-50"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full"
           >
             <Send size={18} />
           </button>
