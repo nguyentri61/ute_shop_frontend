@@ -217,16 +217,9 @@ const ChatWidget = () => {
           {/* Header */}
           <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-sm font-semibold">
-                {conversation?.user?.fullName
-                  ? conversation.user.fullName.slice(0, 1).toUpperCase()
-                  : "U"}
-              </div>
               <div>
                 <div className="text-sm font-semibold">
-                  {conversation?.user?.fullName ||
-                    conversation?.user?.email ||
-                    "Khách hàng"}
+                  Bộ phận chăm sóc khách hàng
                 </div>
                 <div className="text-xs opacity-80">
                   {conversation?.user?.email || ""}
