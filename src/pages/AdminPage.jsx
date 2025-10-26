@@ -40,7 +40,7 @@ const AdminPage = () => {
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: ChartBarIcon },
-    { id: "orders", label: "Đơn hàng", icon: ShoppingBagIcon, badge: "12" },
+    { id: "orders", label: "Đơn hàng", icon: ShoppingBagIcon, },
     { id: "products", label: "Sản phẩm", icon: CubeIcon },
     { id: "users", label: "Người dùng", icon: UsersIcon },
     { id: "vouchers", label: "Mã giảm giá", icon: TagIcon },
