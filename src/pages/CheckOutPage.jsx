@@ -145,6 +145,15 @@ export default function CheckoutCOD() {
             </div>
         );
     }
+    const getFullUrl = (path) => {
+        if (!path) return null;
+        if (/^https?:\/\//i.test(path)) return path;
+        const raw = (import.meta.env.VITE_IMG_URL || "").replace(/\/+$/, "");
+        if (!raw) return path;
+        const origin = raw.replace(/\/api\/?$/, "");
+        const p = path.startsWith("/") ? path : `/${path}`;
+        return `${origin}${p}`;
+    };
 
     console.log("shippingVoucher:", form.shippingVoucher);
     console.log("productVoucher:", form.productVoucher);
@@ -170,7 +179,7 @@ export default function CheckoutCOD() {
                                 name: item.variant.product.name,
                                 price: item.variant.discountPrice ?? item.variant.price,
                                 qty: item.quantity,
-                                image: item.variant.image ?? "",
+                                image: getFullUrl(item.image) ?? "",
                                 description: `Size: ${item.variant.size || "-"}, Màu: ${item.variant.color || "-"
                                     }`,
                                 variant: item.variant,
