@@ -944,86 +944,51 @@ const AdminProductList = () => {
                     className="hidden"
                   />
 
-                  {/* thumbnails - horizontal scroll */}
+                  {/* thumbnails - horizontal scroll (no placeholder when no images) */}
                   <div className="flex gap-3 overflow-x-auto py-2">
-                    {form.images.map((img, i) => (
-                      <div
-                        key={i}
-                        className="relative w-28 h-28 rounded-lg overflow-hidden bg-white border shadow-sm flex-shrink-0"
-                      >
-                        <img
-                          src={
-                            typeof img === "string" && img.startsWith("blob:")
-                              ? img
-                              : img
-                              ? getFullUrl(img)
-                              : "/placeholder-image.png"
-                          }
-                          alt={`preview-${i}`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src = "/placeholder-image.png";
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(i)}
-                          title="Xóa ảnh"
-                          className="absolute -top-2 -right-2 bg-white border rounded-full p-1 shadow hover:bg-rose-600 hover:text-white transition"
-                        >
-                          <XMarkIcon className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
+                    {(form.images || []).filter(Boolean).length > 0 ? (
+                      (form.images || []).map((img, i) => {
+                        if (!img) return null; // skip falsy entries
 
-                    {form.images.length === 0 && (
-                      <div className="text-sm text-slate-400 italic self-center">
-                        Chưa có hình ảnh
-                      </div>
-                    )}
+                        const isBlob = typeof img === "string" && img.startsWith("blob:");
+                        const isString = typeof img === "string" && img.trim() !== "";
+
+                        return (
+                          <div key={i} className="relative w-28 h-28 rounded-lg overflow-hidden bg-white border shadow-sm flex-shrink-0">
+                            {isBlob ? (
+                              <img
+                                src={img}
+                                alt={`preview-${i}`}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : isString ? (
+                              <img
+                                src={getFullUrl(img)}
+                                alt={`preview-${i}`}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  // hide broken image instead of showing placeholder
+                                  e.currentTarget.onerror = null;
+                                  e.currentTarget.style.display = "none";
+                                }}
+                              />
+                            ) : null}
+
+                            <button
+                              type="button"
+                              onClick={() => removeImage(i)}
+                              title="Xóa ảnh"
+                              className="absolute -top-2 -right-2 bg-white border rounded-full p-1 shadow hover:bg-rose-600 hover:text-white transition"
+                            >
+                              <XMarkIcon className="w-4 h-4" />
+                            </button>
+                          </div>
+                        );
+                      })
+                    ) : null}
                   </div>
 
-                  {/* small URL inputs area */}
-                  <div className="mt-3 space-y-2">
-                    {form.images.map((img, i) => (
-                      <div key={i} className="flex gap-2 items-center">
-                        <input
-                          value={img}
-                          onChange={(e) => {
-                            handleImageChange(i, e.target.value);
-                            setTempFiles((t) => {
-                              const arr = Array.isArray(t) ? [...t] : [];
-                              arr[i] = null;
-                              return arr;
-                            });
-                          }}
-                          placeholder="https://..."
-                          className="flex-1 border border-slate-200 rounded-xl px-3 py-2"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(i)}
-                          className="px-3 py-2 bg-red-50 rounded-lg text-sm"
-                        >
-                          Xóa
-                        </button>
-                      </div>
-                    ))}
 
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={addImage}
-                        className="px-3 py-2 bg-gray-100 rounded-lg text-sm"
-                      >
-                        Thêm URL
-                      </button>
-                      <span className="text-xs text-slate-400">
-                        Bạn có thể dán URL hoặc chọn ảnh từ máy
-                      </span>
-                    </div>
-                  </div>
                 </div>
               </div>
 

@@ -370,21 +370,21 @@ const AdminVoucher = () => {
             </div>
 
             {/* DANH SÁCH COUPONS */}
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Danh sách mã giảm giá
-                </h3>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                <div className="p-6 border-b border-gray-100">
+                    <h3 className="text-lg font-bold text-gray-900">Danh sách mã giảm giá</h3>
+                </div>
 
                 {/* Bộ lọc */}
-                <div className="flex flex-wrap gap-3 mb-4">
+                <div className="flex flex-wrap gap-3 p-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                     <input
                         placeholder="Tìm theo mã..."
-                        className="border rounded-lg p-2"
+                        className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none text-sm"
                         value={filters.q}
                         onChange={(e) => handleFilterChange("q", e.target.value)}
                     />
                     <select
-                        className="border rounded-lg p-2"
+                        className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none text-sm"
                         value={filters.type}
                         onChange={(e) => handleFilterChange("type", e.target.value)}
                     >
@@ -393,7 +393,7 @@ const AdminVoucher = () => {
                         <option value="SHIPPING">SHIPPING</option>
                     </select>
                     <select
-                        className="border rounded-lg p-2"
+                        className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none text-sm"
                         value={filters.status}
                         onChange={(e) => handleFilterChange("status", e.target.value)}
                     >
@@ -405,68 +405,87 @@ const AdminVoucher = () => {
 
                 {/* Bảng dữ liệu */}
                 <div className="overflow-x-auto">
-                    <table className="w-full border border-gray-200 text-sm">
-                        <thead className="bg-gray-50">
-                            <tr className="text-center">
-                                <th className="p-2 border">Mã code</th>
-                                <th className="p-2 border">Loại</th>
-                                <th className="p-2 border">Mô tả</th>
-                                <th className="p-2 border">Giảm giá</th>
-                                <th className="p-2 border">Tối thiểu</th>
-                                <th className="p-2 border">Số lượng</th>
-                                <th className="p-2 border">Đã sử dụng</th>
-                                <th className="p-2 border">Ngày hết hạn</th>
-                                <th className="p-2 border">Trạng thái</th>
+                    <table className="min-w-full">
+                        <thead>
+                            <tr className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Mã code</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Loại</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Mô tả</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Giảm giá</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tối thiểu</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Số lượng</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Đã dùng</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Ngày hết hạn</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Trạng thái</th>
                             </tr>
                         </thead>
 
-                        <tbody>
-                            {(coupons ?? []).map((c, i) => (
-                                <tr key={`${c.code}-${i}`} className="text-center hover:bg-gray-50 transition">
-                                    <td className="p-2 border font-medium text-gray-800">{c.code}</td>
-                                    <td className="p-2 border">{c.type}</td>
-                                    <td className="p-2 border text-gray-600">{c.description}</td>
-                                    <td className="p-2 border text-indigo-600 font-semibold">
-                                        {c.discount > 1 ? formatCurrency(c.discount) : c.discount * 100 + "%"}
-                                    </td>
-                                    <td className="p-2 border">{formatCurrency(c.minOrderValue)}</td>
-                                    <td className="p-2 border text-gray-800">{c.quantity}</td>
-                                    <td className="p-2 border text-gray-800">{c.usedCount}</td>
-                                    <td className="p-2 border">
-                                        {new Date(c.expiredAt).toLocaleDateString("vi-VN")}
-                                    </td>
-                                    <td className="p-2 border">
-                                        {new Date(c.expiredAt) > new Date() ? (
-                                            <span className="text-green-600 font-medium">Còn hạn</span>
-                                        ) : (
-                                            <span className="text-red-600 font-medium">Hết hạn</span>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-
-                            {(!coupons || coupons.length === 0) && (
+                        <tbody className="divide-y divide-gray-100">
+                            {(coupons ?? []).length === 0 ? (
                                 <tr>
-                                    <td colSpan="9" className="p-4 text-gray-500 text-center">
-                                        Không có dữ liệu
+                                    <td colSpan="9" className="p-12 text-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                                                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                                                    />
+                                                </svg>
+                                            </div>
+                                            <p className="text-gray-600 font-medium">Không có mã giảm giá nào</p>
+                                            <p className="text-sm text-gray-400">Thử thay đổi bộ lọc hoặc tạo mới</p>
+                                        </div>
                                     </td>
                                 </tr>
+                            ) : (
+                                coupons.map((c, i) => (
+                                    <tr
+                                        key={`${c.code}-${i}`}
+                                        className="transition-all duration-200 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50"
+                                    >
+                                        <td className="px-6 py-4 text-sm font-semibold text-gray-900">{c.code}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-600">{c.type}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-500">{c.description || "—"}</td>
+                                        <td className="px-6 py-4 text-sm font-bold text-indigo-600">
+                                            {c.discount > 1 ? formatCurrency(c.discount) : c.discount * 100 + "%"}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-gray-700">{formatCurrency(c.minOrderValue)}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-700">{c.quantity}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-700">{c.usedCount}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-700">
+                                            {new Date(c.expiredAt).toLocaleDateString("vi-VN")}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm">
+                                            {new Date(c.expiredAt) > new Date() ? (
+                                                <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                                                    Còn hạn
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
+                                                    Hết hạn
+                                                </span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))
                             )}
                         </tbody>
                     </table>
-
                 </div>
 
                 {/* Phân trang */}
-                <div className="flex justify-between items-center mt-4">
+                <div className="flex justify-between items-center px-6 py-4 bg-gray-50 border-t border-gray-100">
                     <button
                         disabled={filters.page <= 1}
                         onClick={() => handlePageChange(filters.page - 1)}
-                        className="px-3 py-1 border rounded-lg disabled:opacity-50"
+                        className="px-4 py-2 bg-white border rounded-lg text-sm font-medium hover:bg-indigo-50 disabled:opacity-50 transition"
                     >
-                        Trước
+                        ← Trước
                     </button>
-                    <span>
+                    <span className="text-sm text-gray-700 font-medium">
                         Trang {pagination?.page ?? 1} /{" "}
                         {Math.ceil((pagination?.total ?? 1) / (pagination?.size ?? 10)) || 1}
                     </span>
@@ -476,12 +495,13 @@ const AdminVoucher = () => {
                             Math.ceil((pagination?.total ?? 1) / (pagination?.size ?? 10))
                         }
                         onClick={() => handlePageChange(filters.page + 1)}
-                        className="px-3 py-1 border rounded-lg disabled:opacity-50"
+                        className="px-4 py-2 bg-white border rounded-lg text-sm font-medium hover:bg-indigo-50 disabled:opacity-50 transition"
                     >
-                        Sau
+                        Sau →
                     </button>
                 </div>
             </div>
+
         </div>
     );
 };
