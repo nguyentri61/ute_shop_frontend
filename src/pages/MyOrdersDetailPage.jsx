@@ -222,7 +222,7 @@ export default function MyOrdersDetailPage() {
                               )}
                             <span className="text-lg font-bold text-blue-600">
                               {formatCurrency(
-                                item.variant.discountPrice || item.price
+                                item.price
                               )}
                             </span>
                           </div>
