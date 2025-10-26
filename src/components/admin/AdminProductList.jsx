@@ -17,6 +17,7 @@ import axios from "../../service/axios.customize"; // reuse your axios instance
 import {
   getAdminProducts,
   getAdminProductById,
+  updateAdminProduct,
   deleteAdminProduct,
   getAdminCategories,
 } from "../../service/api.admin.service.jsx";
@@ -38,15 +39,7 @@ const ExportCSVButton = ({ rows = [] }) => {
       toast("Không có dữ liệu để xuất", { icon: "ℹ️" });
       return;
     }
-    const header = [
-      "id",
-      "name",
-      "category",
-      "price",
-      "discountPrice",
-      "stock",
-      "createdAt",
-    ];
+    const header = ["id", "name", "category", "price", "discountPrice", "stock", "createdAt"];
     const csv = [
       header.join(","),
       ...rows.map((r) =>
@@ -65,10 +58,7 @@ const ExportCSVButton = ({ rows = [] }) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `products_${new Date()
-      .toISOString()
-      .slice(0, 19)
-      .replace(/[:T]/g, "-")}.csv`;
+    a.download = `products_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -76,7 +66,7 @@ const ExportCSVButton = ({ rows = [] }) => {
   return (
     <button
       onClick={handleExport}
-      className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-semibold shadow-sm hover:scale-[1.02] transition transform bg-gradient-to-r from-sky-300 to-sky-200 text-slate-800"
+      className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-semibold shadow-sm hover:scale-[1.02] transition transform bg-gradient-to-r from-emerald-500 to-green-500 text-white"
       title="Xuất CSV"
     >
       <ArrowDownTrayIcon className="w-5 h-5" />
@@ -86,25 +76,14 @@ const ExportCSVButton = ({ rows = [] }) => {
 };
 
 /* ---------- empty templates ---------- */
-const emptyVariant = () => ({
-  color: "",
-  size: "",
-  price: "",
-  discountPrice: "",
-  stock: "",
-});
+const emptyVariant = () => ({ color: "", size: "", price: "", discountPrice: "", stock: "" });
 const emptyImage = () => "";
 
 /* ========== Component ========== */
 const AdminProductList = () => {
   // data + meta
   const [items, setItems] = useState([]);
-  const [meta, setMeta] = useState({
-    total: 0,
-    page: 1,
-    size: 10,
-    totalPages: 1,
-  });
+  const [meta, setMeta] = useState({ total: 0, page: 1, size: 10, totalPages: 1 });
 
   // categories
   const [categories, setCategories] = useState([]);
@@ -143,20 +122,13 @@ const AdminProductList = () => {
     const payload = res?.data?.data ?? res?.data ?? res;
     const itemsFromServer = payload?.items ?? payload?.products ?? [];
     const metaFromServer = payload?.meta ?? payload?.pagination ?? {};
-    const total =
-      Number(metaFromServer?.total ?? itemsFromServer.length ?? 0) || 0;
-    const curPage =
-      Number(metaFromServer?.page ?? fallbackPage) || fallbackPage;
-    const curSize =
-      Number(metaFromServer?.size ?? fallbackSize) || fallbackSize;
-    const totalPages =
-      Number(
-        metaFromServer?.totalPages ?? Math.max(1, Math.ceil(total / curSize))
-      ) || Math.max(1, Math.ceil(total / curSize));
-    return {
-      items: Array.isArray(itemsFromServer) ? itemsFromServer : [],
-      meta: { total, page: curPage, size: curSize, totalPages },
-    };
+    const total = Number(metaFromServer?.total ?? itemsFromServer.length ?? 0) || 0;
+    const curPage = Number(metaFromServer?.page ?? fallbackPage) || fallbackPage;
+    const curSize = Number(metaFromServer?.size ?? fallbackSize) || fallbackSize;
+    const totalPages = Number(
+      metaFromServer?.totalPages ?? Math.max(1, Math.ceil(total / curSize))
+    ) || Math.max(1, Math.ceil(total / curSize));
+    return { items: Array.isArray(itemsFromServer) ? itemsFromServer : [], meta: { total, page: curPage, size: curSize, totalPages } };
   };
 
   /* ---------- fetch categories ---------- */
@@ -187,21 +159,13 @@ const AdminProductList = () => {
         size,
         ...opts,
       });
-      const { items: newItems, meta: newMeta } = normalizeResponse(
-        res,
-        requestedPage,
-        size
-      );
+      const { items: newItems, meta: newMeta } = normalizeResponse(res, requestedPage, size);
       setItems(newItems);
       setMeta(newMeta);
       if (newMeta?.page && newMeta.page !== page) setPage(newMeta.page);
     } catch (err) {
       console.error("fetch products err", err);
-      toast.error(
-        err?.response?.data?.error ||
-          err.message ||
-          "Lỗi khi lấy danh sách sản phẩm"
-      );
+      toast.error(err?.response?.data?.error || err.message || "Lỗi khi lấy danh sách sản phẩm");
     } finally {
       setLoading(false);
     }
@@ -236,37 +200,26 @@ const AdminProductList = () => {
     setSortPrice("");
     setSortDate("");
     setPage(1);
-    fetchList({
-      page: 1,
-      q: "",
-      category: "",
-      minPrice: "",
-      maxPrice: "",
-      sortPrice: "",
-      sortDate: "",
-    });
+    fetchList({ page: 1, q: "", category: "", minPrice: "", maxPrice: "", sortPrice: "", sortDate: "" });
   };
 
   /* ---------- open create/edit ---------- */
   const openCreate = () => {
     setEditing(null);
-    setForm({
-      name: "",
-      description: "",
-      categoryId: "",
-      variants: [emptyVariant()],
-      images: [emptyImage()],
-    });
+    setForm({ name: "", description: "", categoryId: "", variants: [emptyVariant()], images: [emptyImage()] });
     setTempFiles([null]);
     setShowForm(true);
   };
 
+  // when opening edit we preserve variant.id if present on the backend
   const openEdit = async (p) => {
     setCrudLoading(true);
     try {
       const res = await getAdminProductById(p.id);
       const payload = res?.data?.data ?? res?.data ?? res;
       const variants = (payload?.variants ?? []).map((v) => ({
+        // preserve id if backend returns it
+        id: v.id ?? undefined,
         color: v.color ?? "",
         size: v.size ?? "",
         price: v.price != null ? String(v.price) : "",
@@ -334,7 +287,7 @@ const AdminProductList = () => {
 
   const addImage = () => {
     setForm((s) => ({ ...s, images: [...(s.images || []), ""] }));
-    setTempFiles((t) => [...(t && Array.isArray(t) ? t : []), null]);
+    setTempFiles((t) => ([...((t && Array.isArray(t)) ? t : []), null]));
   };
 
   const removeImage = (index) => {
@@ -343,11 +296,7 @@ const AdminProductList = () => {
       const removed = imgs.splice(index, 1)[0];
       // revoke objectURL if it was a blob URL
       if (typeof removed === "string" && removed.startsWith("blob:")) {
-        try {
-          URL.revokeObjectURL(removed);
-        } catch {
-          return;
-        }
+        try { URL.revokeObjectURL(removed); } catch (e) { }
       }
       return { ...s, images: imgs };
     });
@@ -363,11 +312,7 @@ const AdminProductList = () => {
     return () => {
       (form.images || []).forEach((img) => {
         if (typeof img === "string" && img.startsWith("blob:")) {
-          try {
-            URL.revokeObjectURL(img);
-          } catch {
-            return;
-          }
+          try { URL.revokeObjectURL(img); } catch (e) { }
         }
       });
     };
@@ -382,18 +327,26 @@ const AdminProductList = () => {
       return { ...s, variants: v };
     });
   };
-  const addVariant = () =>
-    setForm((s) => ({ ...s, variants: [...s.variants, emptyVariant()] }));
+  const addVariant = () => setForm((s) => ({ ...s, variants: [...s.variants, emptyVariant()] }));
+
+  // Prevent removing existing variants that were loaded from server (they likely have id).
+  // Only allow removing variants that don't have an id (newly added on the client).
   const removeVariant = (i) =>
     setForm((s) => {
-      const v = s.variants.filter((_, idx) => idx !== i);
-      return { ...s, variants: v.length ? v : [emptyVariant()] };
+      const v = s.variants[i];
+      if (v && v.id) {
+        toast.error("Không được xóa variant đã tồn tại. Nếu muốn xóa, thực hiện thao tác chuyên biệt (hoặc liên hệ admin).");
+        return s;
+      }
+      const vNew = s.variants.filter((_, idx) => idx !== i);
+      return { ...s, variants: vNew.length ? vNew : [emptyVariant()] };
     });
 
   /* ---------- submit form (multipart to backend with multer) ---------- */
   const submitForm = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     setCrudLoading(true);
+
     try {
       if (!form.name || !form.categoryId) {
         toast.error("Tên sản phẩm và danh mục là bắt buộc");
@@ -401,83 +354,123 @@ const AdminProductList = () => {
         return;
       }
 
-      // Normalize variants
-      const variantsPayload = (form.variants || []).map((v) => ({
-        color: v.color || null,
-        size: v.size || null,
-        price: v.price !== "" ? Number(v.price) : 0,
-        discountPrice:
-          v.discountPrice !== ""
-            ? v.discountPrice == null
-              ? null
-              : Number(v.discountPrice)
-            : null,
-        stock: v.stock !== "" ? Number(v.stock) : 0,
-      }));
+      // Validate at least one variant exists
+      if (!Array.isArray(form.variants) || form.variants.length === 0) {
+        toast.error("Phải có ít nhất một variant");
+        setCrudLoading(false);
+        return;
+      }
 
-      // Existing image URLs (exclude preview blob: URLs)
+      // Normalize variants -> numeric / null and include id if present
+      const variantsPayload = (form.variants || []).map((v) => {
+        const obj = {
+          color: v.color || null,
+          size: v.size || null,
+          price: v.price !== "" ? Number(v.price) : 0,
+          discountPrice:
+            v.discountPrice !== "" ? (v.discountPrice == null ? null : Number(v.discountPrice)) : null,
+          stock: v.stock !== "" ? Number(v.stock) : 0,
+        };
+        if (v.id) obj.id = v.id; // keep id for reference (backend may ignore, but it's safe)
+        return obj;
+      });
+
+      // existingImageUrls: only strings, exclude blob: previews
       const existingImageUrls = (form.images || [])
-        .map((x) => (typeof x === "string" ? x.trim() : ""))
-        .filter((x) => x && !x.startsWith("blob:"));
+        .filter((x) => typeof x === "string" && x && !x.startsWith("blob:"))
+        .map((x) => {
+          // nếu client hiển thị absolute URL, chuyển về pathname để match DB '/uploads/...'
+          try {
+            const u = new URL(x);
+            return u.pathname; // '/uploads/...'
+          } catch (err) {
+            return x; // already relative
+          }
+        });
 
-      // Files to send (from tempFiles array) — safe detect
-      const filesToUpload = (tempFiles || []).filter(
-        (f) => f && typeof f === "object" && "name" in f
-      );
+      // filesToUpload: from tempFiles
+      const filesToUpload = (tempFiles || []).filter((f) => f && typeof f === "object" && !!f.name);
 
       // Build FormData
       const fd = new FormData();
+      // basic fields
       fd.append("name", form.name);
       fd.append("categoryId", form.categoryId);
       if (form.description) fd.append("description", form.description);
-      fd.append("variants", JSON.stringify(variantsPayload));
-      fd.append("images", JSON.stringify(existingImageUrls)); // existing URLs
 
-      // append files (field name "files" to match uploadMedia.array("files"))
+      // variants (send as JSON string)
+      fd.append("variants", JSON.stringify(variantsPayload));
+
+      // images: send existing images as JSON array (backend will parse)
+      fd.append("images", JSON.stringify(existingImageUrls));
+      // also append existingImages for compatibility with other clients/backends
+      fd.append("existingImages", JSON.stringify(existingImageUrls));
+
+      // append new files
       filesToUpload.forEach((file) => fd.append("files", file, file.name));
 
-      // Debug: iterate formdata (optional)
-      // for (const pair of fd.entries()) {
-      //   console.log("FormData:", pair[0], pair[1]);
-      // }
+      // Send request (try PATCH first, fallback if necessary)
+      const productId = editing?.id;
 
-      // Send: DON'T set Content-Type manually. Let axios set it (with boundary).
-      if (editing && editing.id) {
-        await axios.patch(`/admin/products/${editing.id}`, fd); // no headers
-        toast.success("Cập nhật sản phẩm thành công");
-      } else {
-        await axios.post("/admin/products", fd); // no headers
+      if (!productId) {
+        // Create new product
+        await axios.post("/admin/products", fd);
         toast.success("Tạo sản phẩm thành công");
+      } else {
+        // Attempt multipart PATCH
+        try {
+          await axios.patch(`/admin/products/${productId}`, fd);
+          toast.success("Cập nhật sản phẩm thành công");
+        } catch (patchErr) {
+          console.warn("PATCH multipart failed, trying fallback strategies", patchErr);
+
+          // Fallback 1: POST + _method=PATCH
+          try {
+            const fd2 = new FormData();
+            for (const pair of fd.entries()) fd2.append(pair[0], pair[1]);
+            fd2.append("_method", "PATCH");
+            await axios.post(`/admin/products/${productId}`, fd2);
+            toast.success("Cập nhật sản phẩm thành công (fallback _method)");
+          } catch (fallbackErr1) {
+            // Fallback 2: POST with X-HTTP-Method-Override header
+            try {
+              await axios.post(`/admin/products/${productId}`, fd, {
+                headers: { "X-HTTP-Method-Override": "PATCH" },
+              });
+              toast.success("Cập nhật sản phẩm thành công (fallback header)");
+            } catch (fallbackErr2) {
+              console.error("All update attempts failed:", { patchErr, fallbackErr1, fallbackErr2 });
+              // prefer showing server error if available
+              const backendMsg =
+                fallbackErr2?.response?.data?.error ||
+                fallbackErr2?.response?.data?.message ||
+                fallbackErr2?.message ||
+                "Lỗi khi cập nhật sản phẩm";
+              throw new Error(backendMsg);
+            }
+          }
+        }
       }
 
-      // cleanup previews (revoke blob urls)
+      // cleanup previews (revoke blob URLs)
       (form.images || []).forEach((img) => {
         if (typeof img === "string" && img.startsWith("blob:")) {
           try {
             URL.revokeObjectURL(img);
-          } catch {
-            return;
-          }
+          } catch (e) { }
         }
       });
 
+      // reset form + UI
       setShowForm(false);
       setTempFiles([]);
-      setForm({
-        name: "",
-        description: "",
-        categoryId: "",
-        variants: [emptyVariant()],
-        images: [emptyImage()],
-      });
-      // refresh list
+      setForm({ name: "", description: "", categoryId: "", variants: [emptyVariant()], images: [emptyImage()] });
       fetchList({ page: 1 });
       setPage(1);
     } catch (err) {
       console.error("submitForm err", err);
-      toast.error(
-        err?.response?.data?.error || err.message || "Lỗi khi lưu sản phẩm"
-      );
+      const errMsg = err?.response?.data?.error || err?.message || String(err);
+      toast.error(errMsg || "Lỗi khi lưu sản phẩm");
     } finally {
       setCrudLoading(false);
     }
@@ -507,17 +500,15 @@ const AdminProductList = () => {
   /* ---------- pagination ---------- */
   const currentPage = meta?.page ?? page ?? 1;
   const currentSize = meta?.size ?? size;
-  const totalPages =
-    meta?.totalPages ??
-    Math.max(1, Math.ceil((meta?.total ?? items.length) / currentSize));
+  const totalPages = meta?.totalPages ?? Math.max(1, Math.ceil((meta?.total ?? items.length) / currentSize));
   const goPrev = () => setPage((p) => Math.max(1, p - 1));
   const goNext = () => setPage((p) => Math.min(totalPages, p + 1));
 
   /* ========== render ========== */
   return (
     <div className="space-y-6 p-6 bg-gradient-to-br from-white to-slate-50 min-h-screen">
-      {/* header */}
-      <div className="bg-white rounded-2xl shadow-sm p-6 text-slate-800 border border-slate-100">
+      {/* header - white to match other admin pages */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 text-slate-800 border border-gray-100">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-bold">Quản lý sản phẩm</h2>
@@ -531,7 +522,7 @@ const AdminProductList = () => {
             <ExportCSVButton rows={items} />
             <button
               onClick={openCreate}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-2xl bg-white text-slate-700 font-semibold shadow-sm hover:scale-[1.03] transform transition border border-slate-100"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-2xl bg-white text-slate-700 font-semibold shadow hover:scale-[1.03] transform transition border border-slate-100"
             >
               <PlusIcon className="w-5 h-5" />
               Tạo mới
@@ -545,23 +536,19 @@ const AdminProductList = () => {
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && onSearch(e)}
                 placeholder="Tìm tên hoặc mô tả..."
-                className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:border-sky-300 focus:ring-2 focus:ring-sky-50 transition outline-none"
+                className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition outline-none text-slate-700"
               />
             </div>
           </div>
 
           <div className="flex gap-3 flex-wrap">
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="border border-slate-200 rounded-xl px-4 py-3"
-            >
+            <select value={category} onChange={(e) => setCategory(e.target.value)} className="border border-slate-200 rounded-xl px-4 py-3">
               <option value="">Tất cả danh mục </option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -570,34 +557,16 @@ const AdminProductList = () => {
               ))}
             </select>
 
-            <input
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
-              placeholder="Giá từ"
-              className="border border-slate-200 rounded-xl px-4 py-3 w-28"
-            />
-            <input
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
-              placeholder="Giá đến"
-              className="border border-slate-200 rounded-xl px-4 py-3 w-28"
-            />
+            <input value={minPrice} onChange={(e) => setMinPrice(e.target.value)} placeholder="Giá từ" className="border border-slate-200 rounded-xl px-4 py-3 w-28" />
+            <input value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} placeholder="Giá đến" className="border border-slate-200 rounded-xl px-4 py-3 w-28" />
 
-            <select
-              value={sortPrice}
-              onChange={(e) => setSortPrice(e.target.value)}
-              className="border border-slate-200 rounded-xl px-4 py-3"
-            >
+            <select value={sortPrice} onChange={(e) => setSortPrice(e.target.value)} className="border border-slate-200 rounded-xl px-4 py-3">
               <option value="">Sắp xếp giá</option>
               <option value="asc">Giá tăng</option>
               <option value="desc">Giá giảm</option>
             </select>
 
-            <select
-              value={sortDate}
-              onChange={(e) => setSortDate(e.target.value)}
-              className="border border-slate-200 rounded-xl px-4 py-3"
-            >
+            <select value={sortDate} onChange={(e) => setSortDate(e.target.value)} className="border border-slate-200 rounded-xl px-4 py-3">
               <option value="">Sắp xếp ngày</option>
               <option value="desc">Mới nhất</option>
               <option value="asc">Cũ nhất</option>
@@ -606,27 +575,15 @@ const AdminProductList = () => {
         </div>
 
         <div className="flex items-center gap-3 mt-4 pt-4 border-t border-slate-100">
-          <button
-            onClick={applyFilter}
-            disabled={loading}
-            className="px-5 py-2.5 bg-sky-300 text-white rounded-xl font-medium hover:shadow-sm transform hover:scale-105 transition disabled:opacity-50"
-          >
+          <button onClick={applyFilter} disabled={loading} className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:shadow transform hover:scale-105 transition disabled:opacity-50">
             ✓ Áp dụng
           </button>
-          <button
-            onClick={clearFilter}
-            disabled={loading}
-            className="px-5 py-2.5 bg-white text-slate-700 rounded-xl font-medium hover:bg-slate-50 border border-slate-100"
-          >
+          <button onClick={clearFilter} disabled={loading} className="px-5 py-2.5 bg-white text-slate-700 rounded-xl font-medium hover:bg-slate-50 border border-slate-100">
             ↻ Đặt lại
           </button>
-          <button
-            onClick={onSearch}
-            disabled={loading}
-            className="px-5 py-2.5 bg-gradient-to-r from-sky-300 to-sky-200 text-slate-800 rounded-xl font-medium"
-          >
+          {/* <button onClick={onSearch} disabled={loading} className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium">
             Tìm kiếm
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -636,30 +593,14 @@ const AdminProductList = () => {
           <table className="min-w-full">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">
-                  #
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">
-                  Sản phẩm
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">
-                  Danh mục
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">
-                  Giá
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">
-                  Khuyến mãi
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">
-                  Tồn kho
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">
-                  Ngày tạo
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">
-                  Hành động
-                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">#</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">Sản phẩm</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">Danh mục</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">Giá</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">Khuyến mãi</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">Tồn kho</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">Ngày tạo</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">Hành động</th>
               </tr>
             </thead>
 
@@ -668,10 +609,8 @@ const AdminProductList = () => {
                 <tr>
                   <td colSpan="8" className="p-12 text-center">
                     <div className="flex flex-col items-center gap-3">
-                      <div className="w-12 h-12 border-4 border-sky-300 border-t-transparent rounded-full animate-spin" />
-                      <p className="text-slate-500 font-medium">
-                        Đang tải sản phẩm...
-                      </p>
+                      <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                      <p className="text-slate-500 font-medium">Đang tải sản phẩm...</p>
                     </div>
                   </td>
                 </tr>
@@ -683,22 +622,15 @@ const AdminProductList = () => {
                         <SparklesIcon className="w-8 h-8 text-slate-400" />
                       </div>
                       <div>
-                        <p className="text-slate-600 font-medium">
-                          Không có sản phẩm
-                        </p>
-                        <p className="text-sm text-slate-400 mt-1">
-                          Thử thay đổi bộ lọc hoặc thêm sản phẩm mới
-                        </p>
+                        <p className="text-slate-600 font-medium">Không có sản phẩm</p>
+                        <p className="text-sm text-slate-400 mt-1">Thử thay đổi bộ lọc hoặc thêm sản phẩm mới</p>
                       </div>
                     </div>
                   </td>
                 </tr>
               ) : (
                 items.map((p, idx) => (
-                  <tr
-                    key={p.id}
-                    className="hover:bg-slate-50 transition-all duration-150"
-                  >
+                  <tr key={p.id} className="hover:bg-slate-50 transition-all duration-150">
                     <td className="px-6 py-4 text-sm font-medium">
                       <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-800 font-bold text-xs shadow-sm">
                         {(currentPage - 1) * currentSize + idx + 1}
@@ -709,56 +641,39 @@ const AdminProductList = () => {
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center">
                           {p.productImage && p.productImage[0] ? (
-                            <img
-                              src={getFullUrl(p.productImage[0].url)}
-                              alt={p.name}
-                              className="w-full h-full object-cover"
-                            />
+                            <img src={getFullUrl(p.productImage[0].url)} alt={p.name} className="w-full h-full object-cover" />
                           ) : (
                             <PhotoIcon className="w-6 h-6 text-slate-400" />
                           )}
                         </div>
                         <div>
-                          <div className="text-sm font-semibold text-slate-900">
-                            {p.name}
-                          </div>
-                          <div className="text-xs text-slate-500">
-                            {p.description
-                              ? p.description.slice(0, 80) +
-                                (p.description.length > 80 ? "..." : "")
-                              : "—"}
-                          </div>
+                          <div className="text-sm font-semibold text-slate-900">{p.name}</div>
+                          <div className="text-xs text-slate-500">{p.description ? p.description.slice(0, 80) + (p.description.length > 80 ? "..." : "") : "—"}</div>
                         </div>
                       </div>
                     </td>
 
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      {p.category?.name ?? "—"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      {p.price != null ? p.price : "—"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      {p.discountPrice != null ? p.discountPrice : "—"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      {p.stock ?? 0}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      {p.createdAt
-                        ? new Date(p.createdAt).toLocaleDateString("vi-VN")
-                        : "—"}
-                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{p.category?.name ?? "—"}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{p.price != null ? p.price : "—"}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{p.discountPrice != null ? p.discountPrice : "—"}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{p.stock ?? 0}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{p.createdAt ? new Date(p.createdAt).toLocaleDateString("vi-VN") : "—"}</td>
 
                     <td className="px-6 py-4 text-sm">
                       <div className="flex gap-2">
                         <button
                           onClick={() => openEdit(p)}
-                          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 text-slate-800 shadow-sm border border-slate-100 hover:bg-slate-200 transition"
+                          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white text-indigo-700 shadow-sm border border-slate-100 hover:bg-indigo-50 transition"
                         >
                           <PencilIcon className="w-4 h-4" />
                           Sửa
                         </button>
+                        {/* <button
+                          onClick={() => onDelete(p.id)}
+                          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-rose-600 text-white shadow-sm hover:bg-rose-500 transition"
+                        >
+                          Xóa
+                        </button> */}
                       </div>
                     </td>
                   </tr>
@@ -773,37 +688,25 @@ const AdminProductList = () => {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-sm">
           <span className="text-slate-600">Hiển thị</span>
-          <span className="px-3 py-1 bg-slate-100 text-slate-800 rounded-lg font-semibold">
-            {items.length}
-          </span>
+          <span className="px-3 py-1 bg-slate-100 text-slate-800 rounded-lg font-semibold">{items.length}</span>
           <span className="text-slate-600">trong tổng số</span>
-          <span className="px-3 py-1 bg-slate-100 text-slate-800 rounded-lg font-semibold">
-            {meta.total}
-          </span>
+          <span className="px-3 py-1 bg-slate-100 text-slate-800 rounded-lg font-semibold">{meta.total}</span>
           <span className="text-slate-600">sản phẩm</span>
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={goPrev}
-            disabled={page <= 1 || loading}
-            className="px-4 py-2 rounded-xl border bg-white disabled:opacity-40 flex items-center gap-2"
-          >
+          <button onClick={goPrev} disabled={page <= 1 || loading} className="px-4 py-2 rounded-xl border bg-white disabled:opacity-40 flex items-center gap-2">
             <ChevronLeftIcon className="w-4 h-4" />
             Trước
           </button>
 
-          <div className="px-5 py-2 bg-slate-100 text-slate-800 rounded-xl font-semibold">
+          <div className="px-5 py-2 bg-indigo-600 text-white rounded-xl font-semibold">
             <span className="text-lg">{currentPage}</span>
             <span className="mx-2 opacity-75">/</span>
             <span className="text-lg">{totalPages}</span>
           </div>
 
-          <button
-            onClick={goNext}
-            disabled={page >= totalPages || loading}
-            className="px-4 py-2 rounded-xl border bg-white disabled:opacity-40 flex items-center gap-2"
-          >
+          <button onClick={goNext} disabled={page >= totalPages || loading} className="px-4 py-2 rounded-xl border bg-white disabled:opacity-40 flex items-center gap-2">
             Sau
             <ChevronRightIcon className="w-4 h-4" />
           </button>
@@ -814,19 +717,17 @@ const AdminProductList = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-4xl bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col max-h-[90vh]">
             {/* HEADER */}
-            <div className="flex items-center justify-between gap-4 px-6 py-4 bg-white border-b border-slate-100">
+            <div className="flex items-center justify-between gap-4 px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-slate-50 rounded-lg flex items-center justify-center">
-                  <PhotoIcon className="w-6 h-6 text-slate-600" />
+                <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center">
+                  <PhotoIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-800">
+                  <h3 className="text-lg font-semibold">
                     {editing ? "Chỉnh sửa sản phẩm" : "Tạo sản phẩm mới"}
                   </h3>
-                  <p className="text-sm text-slate-500 mt-0.5">
-                    {editing
-                      ? "Cập nhật thông tin & variants"
-                      : "Thêm sản phẩm vào kho"}
+                  <p className="text-sm mt-0.5 opacity-80">
+                    {editing ? "Cập nhật thông tin & variants" : "Thêm sản phẩm vào kho"}
                   </p>
                 </div>
               </div>
@@ -835,9 +736,9 @@ const AdminProductList = () => {
                 <button
                   onClick={() => setShowForm(false)}
                   aria-label="Đóng"
-                  className="w-10 h-10 rounded-lg bg-white/80 hover:bg-slate-50 flex items-center justify-center border border-slate-100"
+                  className="w-10 h-10 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center border border-white/10"
                 >
-                  <XMarkIcon className="w-5 h-5 text-slate-600" />
+                  <XMarkIcon className="w-5 h-5 text-white" />
                 </button>
               </div>
             </div>
@@ -850,31 +751,23 @@ const AdminProductList = () => {
               {/* ROW 1: name + category */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Tên sản phẩm *
-                  </label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Tên sản phẩm *</label>
                   <input
                     required
                     value={form.name}
-                    onChange={(e) =>
-                      setForm((s) => ({ ...s, name: e.target.value }))
-                    }
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-sky-50 outline-none"
+                    onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-100 outline-none"
                     placeholder="Ví dụ: Áo thun cotton"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Danh mục *
-                  </label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Danh mục *</label>
                   <select
                     required
                     value={form.categoryId}
-                    onChange={(e) =>
-                      setForm((s) => ({ ...s, categoryId: e.target.value }))
-                    }
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-sky-50 outline-none"
+                    onChange={(e) => setForm((s) => ({ ...s, categoryId: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-100 outline-none"
                   >
                     <option value="">Chọn danh mục</option>
                     {categories.map((c) => (
@@ -888,24 +781,18 @@ const AdminProductList = () => {
 
               {/* ROW 2: description */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Mô tả
-                </label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Mô tả</label>
                 <textarea
                   value={form.description}
-                  onChange={(e) =>
-                    setForm((s) => ({ ...s, description: e.target.value }))
-                  }
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 min-h-[90px] focus:ring-2 focus:ring-sky-50 outline-none"
+                  onChange={(e) => setForm((s) => ({ ...s, description: e.target.value }))}
+                  className="w-full border border-slate-200 rounded-xl px-4 py-3 min-h-[90px] focus:ring-2 focus:ring-indigo-100 outline-none"
                   placeholder="Mô tả ngắn"
                 />
               </div>
 
               {/* IMAGES SECTION (full width) */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Hình ảnh (URLs hoặc chọn từ máy)
-                </label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Hình ảnh (URLs hoặc chọn từ máy)</label>
 
                 <div className="rounded-xl border border-dashed border-slate-100 bg-white p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -914,12 +801,8 @@ const AdminProductList = () => {
                         <PhotoIcon className="w-5 h-5 text-slate-400" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium">
-                          Kéo thả ảnh hoặc chọn từ máy
-                        </div>
-                        <div className="text-xs text-slate-400">
-                          Ảnh sẽ upload khi lưu
-                        </div>
+                        <div className="text-sm font-medium">Kéo thả ảnh hoặc chọn từ máy</div>
+                        <div className="text-xs text-slate-400">Ảnh sẽ upload khi lưu</div>
                       </div>
                     </div>
 
@@ -935,14 +818,7 @@ const AdminProductList = () => {
                     </div>
                   </div>
 
-                  <input
-                    ref={fileInputRef}
-                    onChange={onFilesSelected}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                  />
+                  <input ref={fileInputRef} onChange={onFilesSelected} type="file" accept="image/*" multiple className="hidden" />
 
                   {/* thumbnails - horizontal scroll (no placeholder when no images) */}
                   <div className="flex gap-3 overflow-x-auto py-2">
@@ -987,22 +863,18 @@ const AdminProductList = () => {
                       })
                     ) : null}
                   </div>
-
-
                 </div>
               </div>
 
               {/* VARIANTS SECTION */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-medium text-slate-700">
-                    Variants
-                  </h4>
+                  <h4 className="text-sm font-medium text-slate-700">Variants</h4>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={addVariant}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-sky-400 text-white text-sm shadow-sm"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm shadow-sm"
                     >
                       <PlusIcon className="w-4 h-4" />
                       Thêm variant
@@ -1012,52 +884,35 @@ const AdminProductList = () => {
 
                 <div className="space-y-3 max-h-[36vh] overflow-y-auto pr-2">
                   {form.variants.map((v, i) => (
-                    <div
-                      key={i}
-                      className="bg-white border rounded-xl p-3 shadow-sm grid grid-cols-12 gap-2 items-center"
-                    >
+                    <div key={i} className="bg-white border rounded-xl p-3 shadow-sm grid grid-cols-12 gap-2 items-center">
                       <input
                         placeholder="Màu"
                         value={v.color}
-                        onChange={(e) =>
-                          handleVariantChange(i, "color", e.target.value)
-                        }
+                        onChange={(e) => handleVariantChange(i, "color", e.target.value)}
                         className="col-span-12 sm:col-span-3 border border-slate-200 rounded-lg px-2 py-2"
                       />
                       <input
                         placeholder="Size"
                         value={v.size}
-                        onChange={(e) =>
-                          handleVariantChange(i, "size", e.target.value)
-                        }
+                        onChange={(e) => handleVariantChange(i, "size", e.target.value)}
                         className="col-span-12 sm:col-span-2 border border-slate-200 rounded-lg px-2 py-2"
                       />
                       <input
                         placeholder="Giá"
                         value={v.price}
-                        onChange={(e) =>
-                          handleVariantChange(i, "price", e.target.value)
-                        }
+                        onChange={(e) => handleVariantChange(i, "price", e.target.value)}
                         className="col-span-6 sm:col-span-3 border border-slate-200 rounded-lg px-2 py-2"
                       />
                       <input
                         placeholder="Khuyến mãi"
                         value={v.discountPrice}
-                        onChange={(e) =>
-                          handleVariantChange(
-                            i,
-                            "discountPrice",
-                            e.target.value
-                          )
-                        }
+                        onChange={(e) => handleVariantChange(i, "discountPrice", e.target.value)}
                         className="col-span-6 sm:col-span-2 border border-slate-200 rounded-lg px-2 py-2"
                       />
                       <input
                         placeholder="Tồn"
                         value={v.stock}
-                        onChange={(e) =>
-                          handleVariantChange(i, "stock", e.target.value)
-                        }
+                        onChange={(e) => handleVariantChange(i, "stock", e.target.value)}
                         className="col-span-6 sm:col-span-1 border border-slate-200 rounded-lg px-2 py-2"
                       />
 
@@ -1075,9 +930,7 @@ const AdminProductList = () => {
                   ))}
 
                   {form.variants.length === 0 && (
-                    <div className="text-sm text-slate-400 italic">
-                      Chưa có variant nào — bấm "Thêm variant"
-                    </div>
+                    <div className="text-sm text-slate-400 italic">Chưa có variant nào — bấm "Thêm variant"</div>
                   )}
                 </div>
               </div>
@@ -1096,13 +949,9 @@ const AdminProductList = () => {
                 type="button"
                 onClick={(e) => submitForm(e)}
                 disabled={crudLoading}
-                className="px-4 py-2 rounded-xl bg-sky-400 text-white shadow-sm hover:bg-sky-300"
+                className="px-4 py-2 rounded-xl bg-indigo-600 text-white shadow-sm hover:bg-indigo-500"
               >
-                {crudLoading
-                  ? "Đang lưu..."
-                  : editing
-                  ? "Lưu thay đổi"
-                  : "Tạo sản phẩm"}
+                {crudLoading ? "Đang lưu..." : editing ? "Lưu thay đổi" : "Tạo sản phẩm"}
               </button>
             </div>
           </div>

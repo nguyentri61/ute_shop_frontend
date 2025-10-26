@@ -1,11 +1,10 @@
 // src/components/admin/AdminCategoryList.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import {
   PlusIcon,
   PencilIcon,
-  TrashIcon,
   MagnifyingGlassIcon,
   ArrowDownTrayIcon,
   ChevronLeftIcon,
@@ -25,17 +24,23 @@ import {
   selectAdminCategoryCrudLoading,
 } from "../../features/admin/categorySlice";
 
-/**
- * AdminCategoryList — Modern Design with beautiful UI
- */
-
-const StatCard = ({ title, value, hint, from = "from-indigo-50", to = "to-indigo-100", border = "border-indigo-200", text = "text-indigo-800" }) => (
-  <div className={`group rounded-xl p-5 bg-gradient-to-br ${from} ${to} border ${border} shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1`}>
-    <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">{title}</div>
-    <div className={`text-3xl font-bold ${text} mt-2 group-hover:scale-105 transition-transform duration-300`}>{value}</div>
-    {hint && <div className="text-xs text-gray-600 mt-2 font-medium">{hint}</div>}
-  </div>
-);
+/* ---------- small helpers ---------- */
+const StatCard = ({ title, value, hint, tone = "indigo" }) => {
+  const toneMap = {
+    indigo: { text: "text-indigo-900", bg: "bg-white", border: "border-gray-100" },
+    green: { text: "text-emerald-800", bg: "bg-white", border: "border-gray-100" },
+    orange: { text: "text-amber-800", bg: "bg-white", border: "border-gray-100" },
+    purple: { text: "text-violet-800", bg: "bg-white", border: "border-gray-100" },
+  };
+  const t = toneMap[tone] || toneMap.indigo;
+  return (
+    <div className={`rounded-xl p-5 ${t.bg} border ${t.border} shadow-sm hover:shadow-md transition-all duration-200`}>
+      <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">{title}</div>
+      <div className={`text-3xl font-bold ${t.text} mt-2`}>{value}</div>
+      {hint && <div className="text-xs text-gray-500 mt-2 font-medium">{hint}</div>}
+    </div>
+  );
+};
 
 const ExportCSVButton = ({ rows }) => {
   const handleExport = () => {
@@ -69,10 +74,10 @@ const ExportCSVButton = ({ rows }) => {
   return (
     <button
       onClick={handleExport}
-      className="group inline-flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 text-sm font-medium transition-all duration-200 shadow-sm hover:shadow"
+      className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-100 rounded-lg text-sm font-medium shadow-sm hover:shadow transition"
       title="Xuất CSV"
     >
-      <ArrowDownTrayIcon className="w-4 h-4 group-hover:animate-bounce" />
+      <ArrowDownTrayIcon className="w-4 h-4 text-indigo-600" />
       Xuất CSV
     </button>
   );
@@ -99,7 +104,12 @@ const AdminCategoryList = () => {
 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
+
+  // form state: name + icon could be URL string; iconFile holds File if user selected local file
   const [form, setForm] = useState({ name: "", icon: "" });
+  const [iconFile, setIconFile] = useState(null); // File | null
+  const [iconPreview, setIconPreview] = useState(""); // preview url (objectURL or existing url)
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     dispatch(fetchAdminCategories({ q, page, size }));
@@ -108,6 +118,16 @@ const AdminCategoryList = () => {
   useEffect(() => {
     if (meta?.page && meta.page !== page) setPage(meta.page);
   }, [meta?.page]);
+
+  // clean up object URL on unmount / when iconFile changes
+  useEffect(() => {
+    return () => {
+      if (iconPreview && iconPreview.startsWith("blob:")) {
+        try { URL.revokeObjectURL(iconPreview); } catch (e) { /* ignore */ }
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const applyPreset = (preset) => {
     const now = new Date();
@@ -170,27 +190,85 @@ const AdminCategoryList = () => {
   const openCreate = () => {
     setEditing(null);
     setForm({ name: "", icon: "" });
+    setIconFile(null);
+    setIconPreview("");
     setShowForm(true);
   };
 
   const openEdit = (cat) => {
     setEditing(cat);
     setForm({ name: cat.name || "", icon: cat.icon || "" });
+    setIconFile(null);
+    setIconPreview(cat.icon || "");
     setShowForm(true);
   };
 
+  /* ---------------- image handlers ---------------- */
+  const triggerPick = () => fileInputRef.current?.click();
+
+  const onFileChange = (e) => {
+    const f = e.target?.files?.[0];
+    if (!f) return;
+    // revoke old preview if blob
+    if (iconPreview && iconPreview.startsWith("blob:")) {
+      try { URL.revokeObjectURL(iconPreview); } catch (err) { }
+    }
+    const preview = URL.createObjectURL(f);
+    setIconFile(f);
+    setIconPreview(preview);
+    // clear form.icon (we're using file now)
+    setForm((s) => ({ ...s, icon: "" }));
+    // reset input
+    e.target.value = "";
+  };
+
+  const removeSelectedIcon = () => {
+    if (iconPreview && iconPreview.startsWith("blob:")) {
+      try { URL.revokeObjectURL(iconPreview); } catch (e) { }
+    }
+    setIconFile(null);
+    setIconPreview("");
+    // if editing, keep form.icon as '' so backend knows to remove icon when submitting (controller checks "icon" in body)
+    if (editing) setForm((s) => ({ ...s, icon: "" }));
+  };
+
   const submitForm = async (e) => {
-    e.preventDefault();
+    e?.preventDefault?.();
     try {
       if (!form.name?.trim()) return toast.error("Tên danh mục là bắt buộc");
-      if (editing) {
-        await dispatch(updateAdminCategoryThunk({ id: editing.id, payload: form })).unwrap();
-        toast.success("Cập nhật thành công");
+
+      // If iconFile exists -> build FormData
+      if (iconFile) {
+        const fd = new FormData();
+        fd.append("name", form.name.trim());
+        fd.append("file", iconFile); // backend expects req.file
+        // When editing: send as FormData to PATCH endpoint
+        if (editing) {
+          await dispatch(updateAdminCategoryThunk({ id: editing.id, payload: fd })).unwrap();
+          toast.success("Cập nhật thành công");
+        } else {
+          await dispatch(createAdminCategoryThunk(fd)).unwrap();
+          toast.success("Tạo danh mục thành công");
+        }
       } else {
-        await dispatch(createAdminCategoryThunk(form)).unwrap();
-        toast.success("Tạo danh mục thành công");
+        // No file selected. Send JSON:
+        // - If user set form.icon to empty string while editing and we include "icon" field, backend will treat it as removal.
+        const payload = { name: form.name.trim() };
+        // include icon key if user provided or explicitly cleared it (editing case)
+        if ("icon" in form) payload.icon = form.icon ? form.icon.trim() : "";
+        if (editing) {
+          await dispatch(updateAdminCategoryThunk({ id: editing.id, payload })).unwrap();
+          toast.success("Cập nhật thành công");
+        } else {
+          await dispatch(createAdminCategoryThunk(payload)).unwrap();
+          toast.success("Tạo danh mục thành công");
+        }
       }
+
       setShowForm(false);
+      setIconFile(null);
+      setIconPreview("");
+      setForm({ name: "", icon: "" });
       dispatch(fetchAdminCategories({ q, page, size }));
     } catch (err) {
       const msg = err?.message || err?.error || JSON.stringify(err);
@@ -208,84 +286,63 @@ const AdminCategoryList = () => {
       toast.error(err?.message || "Lỗi khi xóa");
     }
   };
+  const getFullUrl = (path) => {
+    if (!path) return null;
+    if (/^https?:\/\//i.test(path)) return path;
+    const raw = (import.meta.env.VITE_IMG_URL || "").replace(/\/+$/, "");
+    if (!raw) return path;
+    const origin = raw.replace(/\/api\/?$/, "");
+    const p = path.startsWith("/") ? path : `/${path}`;
+    return `${origin}${p}`;
+  };
 
   const goPrev = () => setPage((p) => Math.max(1, p - 1));
   const goNext = () => setPage((p) => Math.min(totalPages, p + 1));
 
   return (
-    <div className="space-y-6 p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-      {/* Header with Gradient */}
-      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl shadow-xl p-8 text-white">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Quản lý danh mục</h1>
-            <p className="text-indigo-100 mt-2 text-sm">Tạo, sửa, xóa và quản lý các danh mục sản phẩm của bạn</p>
-          </div>
+    <div className="space-y-6 p-6 bg-neutral-50 min-h-screen">
+      {/* Header */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">Quản lý danh mục</h1>
+          <p className="text-sm text-gray-500 mt-1">Tạo, sửa, xóa và quản lý các danh mục sản phẩm</p>
+        </div>
 
-          <div className="flex items-center gap-3">
-            <ExportCSVButton rows={filteredList.length ? filteredList : items} />
-            <button
-              onClick={openCreate}
-              className="group inline-flex items-center gap-2 px-5 py-2.5 bg-white text-indigo-600 rounded-lg hover:bg-indigo-50 font-medium shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-            >
-              <PlusIcon className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
-              Tạo mới
-            </button>
-          </div>
+        <div className="flex items-center gap-3">
+          <ExportCSVButton rows={filteredList.length ? filteredList : items} />
+          <button
+            onClick={openCreate}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-sm hover:bg-indigo-700 transition"
+          >
+            <PlusIcon className="w-5 h-5" />
+            Tạo mới
+          </button>
         </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Tổng danh mục"
-          value={total}
-          hint={`Trang ${meta?.page ?? page} • ${meta?.size ?? size} / trang`}
-        />
-        <StatCard
-          title="Hiển thị"
-          value={displayedCount}
-          hint={startDate || endDate ? `${startDate || "—"} → ${endDate || "—"}` : "Không lọc theo ngày"}
-          from="from-emerald-50"
-          to="to-emerald-100"
-          border="border-emerald-200"
-          text="text-emerald-800"
-        />
-        <StatCard
-          title="Có icon"
-          value={(items || []).filter((c) => c.icon).length}
-          hint="Số danh mục có icon"
-          from="from-yellow-50"
-          to="to-yellow-100"
-          border="border-yellow-200"
-          text="text-yellow-800"
-        />
-        <StatCard
-          title="Không có icon"
-          value={(items || []).filter((c) => !c.icon).length}
-          hint="Cần bổ sung icon"
-          from="from-rose-50"
-          to="to-rose-100"
-          border="border-rose-200"
-          text="text-rose-800"
-        />
+        <StatCard title="Tổng danh mục" value={total} hint={`Trang ${meta?.page ?? page} • ${meta?.size ?? size} / trang`} tone="indigo" />
+        <StatCard title="Hiển thị" value={displayedCount} hint={startDate || endDate ? `${startDate || "—"} → ${endDate || "—"}` : "Không lọc theo ngày"} tone="green" />
+        <StatCard title="Có icon" value={(items || []).filter((c) => c.icon).length} hint="Số danh mục có icon" tone="orange" />
+        <StatCard title="Không có icon" value={(items || []).filter((c) => !c.icon).length} hint="Cần bổ sung icon" tone="purple" />
       </div>
 
       {/* Controls */}
-      <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-lg p-6 flex flex-col gap-4">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <div className="flex flex-col lg:flex-row lg:items-center gap-3 justify-between">
           <div className="flex items-center gap-3 w-full lg:w-2/3">
-            <div className="relative w-full group">
-              <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
+            <div className="relative w-full">
+              <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && onSearch(e)}
                 placeholder="Tìm theo tên danh mục..."
-                className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+                className="w-full pl-12 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 outline-none text-gray-700"
               />
             </div>
-            <button onClick={onSearch} className="px-5 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 font-medium shadow-md hover:shadow-lg transition-all duration-200">
+            <button onClick={onSearch} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
               Tìm
             </button>
           </div>
@@ -297,80 +354,73 @@ const AdminCategoryList = () => {
                 setPage(1);
                 dispatch(fetchAdminCategories({ q: "", page: 1, size }));
               }}
-              className="px-4 py-3 border-2 border-gray-200 rounded-xl bg-white hover:bg-gray-50 hover:border-gray-300 font-medium transition-all duration-200"
+              className="px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition"
             >
               Đặt lại
             </button>
           </div>
         </div>
 
-        {/* Date filter row */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pt-4 border-t border-gray-100">
+        {/* Date filters */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pt-4 border-t border-gray-100 mt-4">
           <div className="flex items-center gap-3 flex-wrap">
-            <label className="text-sm font-semibold text-gray-700">Từ:</label>
-            <input type="date" value={startDate} onChange={(e) => { setStartDate(e.target.value); setActivePreset(""); }} className="border-2 border-gray-200 rounded-lg px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" />
-            <label className="text-sm font-semibold text-gray-700">Đến:</label>
-            <input type="date" value={endDate} onChange={(e) => { setEndDate(e.target.value); setActivePreset(""); }} className="border-2 border-gray-200 rounded-lg px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" />
-            <button onClick={clearDateFilters} className="px-3 py-2 border-2 border-gray-200 rounded-lg bg-white hover:bg-red-50 hover:border-red-300 hover:text-red-600 font-medium transition-all">
-              Xóa
-            </button>
+            <label className="text-sm font-medium text-gray-700">Từ:</label>
+            <input type="date" value={startDate} onChange={(e) => { setStartDate(e.target.value); setActivePreset(""); }} className="border border-gray-200 rounded-lg px-3 py-2" />
+            <label className="text-sm font-medium text-gray-700">Đến:</label>
+            <input type="date" value={endDate} onChange={(e) => { setEndDate(e.target.value); setActivePreset(""); }} className="border border-gray-200 rounded-lg px-3 py-2" />
+            <button onClick={clearDateFilters} className="px-2 py-2 border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-rose-50 transition">Xóa</button>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => applyPreset("7d")} className={`px-3 py-2 rounded-lg font-medium transition-all duration-200 ${activePreset === "7d" ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md" : "bg-gray-100 hover:bg-gray-200"}`}>7 ngày</button>
-            <button onClick={() => applyPreset("30d")} className={`px-3 py-2 rounded-lg font-medium transition-all duration-200 ${activePreset === "30d" ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md" : "bg-gray-100 hover:bg-gray-200"}`}>30 ngày</button>
-            <button onClick={() => applyPreset("90d")} className={`px-3 py-2 rounded-lg font-medium transition-all duration-200 ${activePreset === "90d" ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md" : "bg-gray-100 hover:bg-gray-200"}`}>90 ngày</button>
-            <button onClick={() => applyPreset("month")} className={`px-3 py-2 rounded-lg font-medium transition-all duration-200 ${activePreset === "month" ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md" : "bg-gray-100 hover:bg-gray-200"}`}>Tháng này</button>
+            <button onClick={() => applyPreset("7d")} className={`px-3 py-2 rounded-lg text-sm ${activePreset === "7d" ? "bg-indigo-600 text-white" : "bg-gray-100 hover:bg-gray-200"}`}>7 ngày</button>
+            <button onClick={() => applyPreset("30d")} className={`px-3 py-2 rounded-lg text-sm ${activePreset === "30d" ? "bg-indigo-600 text-white" : "bg-gray-100 hover:bg-gray-200"}`}>30 ngày</button>
+            <button onClick={() => applyPreset("90d")} className={`px-3 py-2 rounded-lg text-sm ${activePreset === "90d" ? "bg-indigo-600 text-white" : "bg-gray-100 hover:bg-gray-200"}`}>90 ngày</button>
+            <button onClick={() => applyPreset("month")} className={`px-3 py-2 rounded-lg text-sm ${activePreset === "month" ? "bg-indigo-600 text-white" : "bg-gray-100 hover:bg-gray-200"}`}>Tháng này</button>
           </div>
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-lg">
+      <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-lg">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+            <thead className="bg-white">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">#</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tên</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Icon</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Ngày tạo</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Hành động</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">#</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Tên</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Icon</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Ngày tạo</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Hành động</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan="5" className="p-12 text-center">
-                    <div className="flex flex-col items-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-                      <p className="text-gray-600 font-medium">Đang tải...</p>
-                    </div>
-                  </td>
+                  <td colSpan="5" className="p-12 text-center text-gray-500">Đang tải...</td>
                 </tr>
               ) : filteredList.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="p-12 text-center text-gray-500">
-                    <div className="flex flex-col items-center">
-                      <PhotoIcon className="w-16 h-16 text-gray-300 mb-4" />
+                    <div className="flex flex-col items-center gap-3">
+                      <PhotoIcon className="w-16 h-16 text-gray-300" />
                       <div className="text-lg font-semibold text-gray-700">Không có danh mục</div>
-                      <div className="text-sm text-gray-400 mt-2">{q ? "Không tìm thấy danh mục phù hợp" : "Danh mục chưa được tạo"}</div>
+                      <div className="text-sm text-gray-400">{q ? "Không tìm thấy danh mục phù hợp" : "Danh mục chưa được tạo"}</div>
                     </div>
                   </td>
                 </tr>
               ) : (
                 filteredList.map((c, idx) => (
-                  <tr key={c.id} className="hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-purple-50/50 transition-all duration-200">
+                  <tr key={c.id} className="hover:bg-gray-50 transition">
                     <td className="px-6 py-4 text-sm font-medium text-gray-700">{(meta?.page - 1) * (meta?.size || size) + idx + 1}</td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-semibold text-gray-900">{c.name}</div>
-                      <div className="text-xs text-gray-500 mt-1 font-mono">ID: {String(c.id).slice(0, 8)}</div>
+                      <div className="text-xs text-gray-400 mt-1 font-mono">ID: {String(c.id).slice(0, 8)}</div>
                     </td>
                     <td className="px-6 py-4">
                       {c.icon ? (
-                        <img src={c.icon} alt={c.name} className="w-12 h-12 object-cover rounded-lg shadow-sm ring-2 ring-gray-100" />
+                        <img src={getFullUrl(c.icon)} alt={c.name} className="w-12 h-12 object-cover rounded-md shadow-sm" />
                       ) : (
-                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400 text-xs font-medium">—</div>
+                        <div className="w-12 h-12 rounded-md bg-gray-100 flex items-center justify-center text-gray-400">—</div>
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600 font-medium">{c.createdAt ? new Date(c.createdAt).toLocaleString() : "—"}</td>
@@ -378,19 +428,12 @@ const AdminCategoryList = () => {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => openEdit(c)}
-                          className="group inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-lg text-sm font-medium text-yellow-700 hover:from-yellow-100 hover:to-orange-100 hover:border-yellow-300 transition-all duration-200 hover:shadow-md"
+                          className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-gray-100 text-gray-800 rounded-md hover:bg-indigo-50 transition"
                         >
-                          <PencilIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                          <PencilIcon className="w-4 h-4 text-indigo-600" />
                           Sửa
                         </button>
-                        <button
-                          onClick={() => onDelete(c.id)}
-                          disabled={crudLoading}
-                          className="group inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 rounded-lg text-sm font-medium text-red-600 hover:from-red-100 hover:to-pink-100 hover:border-red-300 transition-all duration-200 hover:shadow-md disabled:opacity-50"
-                        >
-                          <TrashIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                          {crudLoading ? "..." : "Xóa"}
-                        </button>
+
                       </div>
                     </td>
                   </tr>
@@ -402,26 +445,16 @@ const AdminCategoryList = () => {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl px-6 py-4 shadow-lg">
+      <div className="flex items-center justify-between bg-white border border-gray-100 rounded-2xl px-6 py-4 shadow-sm">
         <div className="text-sm text-gray-600 font-medium">
-          Hiển thị <span className="font-bold text-indigo-600">{filteredList.length}</span> / <span className="font-bold text-gray-900">{total}</span> danh mục
+          Hiển thị <span className="font-semibold text-gray-900">{filteredList.length}</span> / <span className="font-semibold text-gray-900">{total}</span> danh mục
         </div>
         <div className="flex items-center gap-3">
-          <button
-            onClick={goPrev}
-            disabled={page <= 1}
-            className="p-2.5 border-2 border-gray-200 rounded-lg hover:bg-indigo-50 hover:border-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-md"
-          >
+          <button onClick={goPrev} disabled={page <= 1} className="p-2 rounded-md border border-gray-100 bg-white hover:bg-indigo-50 disabled:opacity-50 transition">
             <ChevronLeftIcon className="w-5 h-5 text-gray-600" />
           </button>
-          <div className="text-sm font-bold text-gray-700 px-4 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border-2 border-indigo-200">
-            {page} / {totalPages}
-          </div>
-          <button
-            onClick={goNext}
-            disabled={page >= totalPages}
-            className="p-2.5 border-2 border-gray-200 rounded-lg hover:bg-indigo-50 hover:border-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-md"
-          >
+          <div className="px-4 py-2 bg-white rounded-md border border-gray-100 text-sm font-semibold text-gray-800">{page} / {totalPages}</div>
+          <button onClick={goNext} disabled={page >= totalPages} className="p-2 rounded-md border border-gray-100 bg-white hover:bg-indigo-50 disabled:opacity-50 transition">
             <ChevronRightIcon className="w-5 h-5 text-gray-600" />
           </button>
         </div>
@@ -429,64 +462,81 @@ const AdminCategoryList = () => {
 
       {/* Modal */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 animate-in slide-in-from-bottom-4 duration-300">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                {editing ? "Chỉnh sửa danh mục" : "Tạo danh mục mới"}
-              </h3>
-              <button
-                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-all duration-200"
-                onClick={() => setShowForm(false)}
-              >
-                <XMarkIcon className="w-6 h-6" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">{editing ? "Chỉnh sửa danh mục" : "Tạo danh mục mới"}</h3>
+              <button onClick={() => setShowForm(false)} className="p-2 rounded-md hover:bg-gray-100">
+                <XMarkIcon className="w-5 h-5 text-gray-500" />
               </button>
             </div>
 
-            <form onSubmit={submitForm} className="space-y-5">
+            <form onSubmit={submitForm} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Tên danh mục *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tên danh mục *</label>
                 <input
                   value={form.name}
                   onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
-                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all duration-200"
+                  className="w-full border border-gray-200 rounded-md px-3 py-2"
                   placeholder="Ví dụ: Thời trang, Điện tử..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Icon (URL)</label>
-                <div className="flex gap-3">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Icon</label>
+                <div className="flex gap-3 items-center">
                   <input
+                    type="text"
                     value={form.icon}
-                    onChange={(e) => setForm((s) => ({ ...s, icon: e.target.value }))}
-                    className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all duration-200"
-                    placeholder="https://..."
+                    onChange={(e) => {
+                      setForm((s) => ({ ...s, icon: e.target.value }));
+                      // if user types a URL we clear any selected file
+                      if (iconFile) {
+                        if (iconPreview && iconPreview.startsWith("blob:")) {
+                          try { URL.revokeObjectURL(iconPreview); } catch (e) { }
+                        }
+                        setIconFile(null);
+                        setIconPreview("");
+                      }
+                    }}
+                    className="flex-1 border border-gray-200 rounded-md px-3 py-2"
+                    placeholder="Dán URL ảnh hoặc chọn ảnh từ máy"
                   />
-                  <div className="w-16 h-14 flex items-center justify-center border-2 border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
-                    {form.icon ? (
+                  <div className="w-14 h-12 flex items-center justify-center border border-gray-200 rounded-md bg-gray-50 overflow-hidden">
+                    {iconPreview ? (
+                      <img src={iconPreview} alt="preview" className="w-full h-full object-cover" />
+                    ) : form.icon ? (
                       <img src={form.icon} alt="preview" className="w-full h-full object-cover" />
                     ) : (
-                      <PhotoIcon className="w-8 h-8 text-gray-300" />
+                      <PhotoIcon className="w-6 h-6 text-gray-300" />
                     )}
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">Bạn có thể dán URL ảnh hoặc dùng endpoint upload riêng nếu cần.</p>
+
+                <div className="flex items-center gap-2 mt-3">
+                  <input ref={fileInputRef} type="file" accept="image/*" onChange={onFileChange} className="hidden" />
+                  <button type="button" onClick={triggerPick} className="px-3 py-2 rounded-md border border-gray-200 bg-white text-sm hover:bg-gray-50">
+                    Chọn ảnh từ máy
+                  </button>
+                  {(iconPreview || form.icon) && (
+                    <button
+                      type="button"
+                      onClick={removeSelectedIcon}
+                      className="px-3 py-2 rounded-md border border-gray-200 bg-white text-sm hover:bg-rose-50 text-rose-600"
+                    >
+                      Xóa ảnh
+                    </button>
+                  )}
+                </div>
+
+                <p className="text-xs text-gray-400 mt-2">Bạn có thể dán URL ảnh hoặc chọn ảnh từ máy. Khi chọn ảnh từ máy, file sẽ được gửi lên server.</p>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="px-5 py-2.5 border-2 border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 font-medium transition-all duration-200"
-                >
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border border-gray-100 rounded-md bg-white text-gray-700">
                   Hủy
                 </button>
-                <button
-                  type="submit"
-                  disabled={crudLoading}
-                  className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 font-medium shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
+                <button type="submit" disabled={crudLoading} className="px-4 py-2 bg-indigo-600 text-white rounded-md">
                   {crudLoading ? "Đang xử lý..." : editing ? "Lưu thay đổi" : "Tạo danh mục"}
                 </button>
               </div>

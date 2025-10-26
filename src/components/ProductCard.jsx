@@ -16,12 +16,22 @@ export default function ProductCard({ product }) {
     price,
     discountPrice,
     createdAt,
-    images,
+    productImage,
     averageRating,
     reviewCount,
   } = product;
+  /* ---------- helpers ---------- */
+  const getFullUrl = (path) => {
+    if (!path) return null;
+    if (/^https?:\/\//i.test(path)) return path;
+    const raw = (import.meta.env.VITE_IMG_URL || "").replace(/\/+$/, "");
+    if (!raw) return path;
+    const origin = raw.replace(/\/api\/?$/, "");
+    const p = path.startsWith("/") ? path : `/${path}`;
+    return `${origin}${p}`;
+  };
 
-  const imageUrl = images?.[0]?.url || "/placeholder-product.png";
+  const imageUrl = getFullUrl(productImage?.[0]?.url) || "/placeholder-product.png";
   const isNew = new Date() - new Date(createdAt) < 7 * 24 * 60 * 60 * 1000;
   const sale = discountPrice && discountPrice < price;
   const discountPercent = sale ? Math.round(((price - discountPrice) / price) * 100) : 0;
