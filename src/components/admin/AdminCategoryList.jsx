@@ -485,23 +485,6 @@ const AdminCategoryList = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Icon</label>
                 <div className="flex gap-3 items-center">
-                  <input
-                    type="text"
-                    value={form.icon}
-                    onChange={(e) => {
-                      setForm((s) => ({ ...s, icon: e.target.value }));
-                      // if user types a URL we clear any selected file
-                      if (iconFile) {
-                        if (iconPreview && iconPreview.startsWith("blob:")) {
-                          try { URL.revokeObjectURL(iconPreview); } catch (e) { }
-                        }
-                        setIconFile(null);
-                        setIconPreview("");
-                      }
-                    }}
-                    className="flex-1 border border-gray-200 rounded-md px-3 py-2"
-                    placeholder="Dán URL ảnh hoặc chọn ảnh từ máy"
-                  />
                   <div className="w-14 h-12 flex items-center justify-center border border-gray-200 rounded-md bg-gray-50 overflow-hidden">
                     {iconPreview ? (
                       <img src={iconPreview} alt="preview" className="w-full h-full object-cover" />
