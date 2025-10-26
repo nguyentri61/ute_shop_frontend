@@ -104,6 +104,29 @@ const unblockAdminUser = (id) => axios.patch(`/admin/users/${id}/unblock`);
 /** PATCH /admin/users/:id/role -> thay đổi vai trò (body: { role: "ADMIN"|"USER" }) */
 const changeAdminUserRole = (id, role) => axios.patch(`/admin/users/${id}/role`, { role });
 
+const getAdminProducts = (params = {}) => {
+  return axios.get("/admin/products", { params });
+};
+
+/** GET /admin/products/:id */
+const getAdminProductById = (id) => axios.get(`/admin/products/${id}`);
+
+const createAdminProduct = (payload) => {
+  if (payload instanceof FormData) {
+    return axios.post("/admin/products", payload); // don't set Content-Type
+  }
+  return axios.post("/admin/products", payload); // axios will set application/json
+};
+
+const updateAdminProduct = (id, payload) => {
+  if (payload instanceof FormData) {
+    return axios.patch(`/admin/products/${id}`, payload);
+  }
+  return axios.patch(`/admin/products/${id}`, payload);
+};
+/** DELETE /admin/products/:id */
+const deleteAdminProduct = (id) => axios.delete(`/admin/products/${id}`);
+
 /* ============================
    Exports
    ============================ */
@@ -132,4 +155,11 @@ export {
   deleteAdminUser,
   unblockAdminUser,
   changeAdminUserRole,
+
+  // products
+  getAdminProducts,
+  getAdminProductById,
+  createAdminProduct,
+  updateAdminProduct,
+  deleteAdminProduct,
 };

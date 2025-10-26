@@ -279,9 +279,9 @@ const AdminUserList = () => {
               onChange={(e) => setRole(e.target.value)}
               className="border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none"
             >
-              <option value="">🎭 Tất cả vai trò</option>
-              <option value="USER">👤 USER</option>
-              <option value="ADMIN">👑 ADMIN</option>
+              <option value="">Tất cả vai trò</option>
+              <option value="USER">USER</option>
+              <option value="ADMIN">ADMIN</option>
             </select>
 
             <input
@@ -320,7 +320,7 @@ const AdminUserList = () => {
             className="px-5 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium hover:shadow-lg transform hover:scale-105 transition-all disabled:opacity-50"
             disabled={loading}
           >
-            🔍 Tìm kiếm
+            Tìm kiếm
           </button>
         </div>
       </div>
@@ -402,17 +402,17 @@ const AdminUserList = () => {
                     </td>
                     <td className="px-6 py-4 text-sm">
                       {u.role === "ADMIN" ? (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full text-xs font-bold shadow-md">👑 ADMIN</span>
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full text-xs font-bold shadow-md">ADMIN</span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full text-xs font-bold shadow-md">👤 USER</span>
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full text-xs font-bold shadow-md">USER</span>
                       )}
                     </td>
 
                     <td className="px-6 py-4 text-sm">
                       {u.blocked ? (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">🔒 Bị khóa</span>
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">Bị khóa</span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">✅ Hoạt động</span>
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Hoạt động</span>
                       )}
                     </td>
 
@@ -485,7 +485,7 @@ const AdminUserList = () => {
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl">
             <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-t-3xl px-8 py-6 text-white flex items-center justify-between">
               <div>
-                <h3 className="text-2xl font-bold">{editing ? "✏️ Chỉnh sửa người dùng" : "➕ Tạo người dùng mới"}</h3>
+                <h3 className="text-2xl font-bold">{editing ? " Chỉnh sửa người dùng" : "Tạo người dùng mới"}</h3>
                 <p className="text-sm text-indigo-100 mt-1">{editing ? "Cập nhật thông tin người dùng" : "Thêm người dùng vào hệ thống"}</p>
               </div>
               <button onClick={() => setShowForm(false)} className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-xl flex items-center justify-center">

@@ -7,7 +7,6 @@ const instance = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
   headers: {
-    "Content-Type": "application/json",
     Accept: "application/json",
   },
 });
@@ -24,18 +23,28 @@ function addSubscriber(callback) {
   refreshSubscribers.push(callback);
 }
 
+
 instance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+
+    // If sending FormData, let the browser/axios set Content-Type (with boundary)
+    if (config.data instanceof FormData) {
+      // delete any explicit Content-Type so axios will set multipart/form-data with boundary
+      if (config.headers && config.headers["Content-Type"]) {
+        delete config.headers["Content-Type"];
+      }
+      if (config.headers && config.headers.common && config.headers.common["Content-Type"]) {
+        delete config.headers.common["Content-Type"];
+      }
     }
+
     console.log("[API REQUEST]", config.method?.toUpperCase(), config.url, "-> headers:", config.headers);
     return config;
   },
   (error) => Promise.reject(error)
 );
-
 instance.interceptors.response.use(
   (response) => {
     return response?.data || response;
