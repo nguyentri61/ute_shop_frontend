@@ -41,6 +41,15 @@ const Button = ({
         </button>
     );
 };
+const getFullUrl = (path) => {
+    if (!path) return null;
+    if (/^https?:\/\//i.test(path)) return path;
+    const raw = (import.meta.env.VITE_IMG_URL || "").replace(/\/+$/, "");
+    if (!raw) return path;
+    const origin = raw.replace(/\/api\/?$/, "");
+    const p = path.startsWith("/") ? path : `/${path}`;
+    return `${origin}${p}`;
+};
 
 export default function CartList({
     items,
@@ -120,7 +129,7 @@ export default function CartList({
                                 />
 
                                 <img
-                                    src={product.image ?? "/placeholder-product.png"}
+                                    src={getFullUrl(it.image) ?? "/placeholder-product.png"}
                                     alt={product.name ?? "Sản phẩm"}
                                     className={`h-24 w-24 rounded-xl border border-slate-100 object-cover shadow-sm ${isOutOfStock ? "opacity-60" : ""}`}
                                 />

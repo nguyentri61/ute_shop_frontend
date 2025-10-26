@@ -239,7 +239,7 @@ export default function ProductDetailPage() {
           )}
 
           {/* Chọn size */}
-          {sizesByColor.length > 0 && (
+          {sizesByColor != null && sizesByColor.length > 0 && (
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Kích thước:
