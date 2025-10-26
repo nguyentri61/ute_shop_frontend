@@ -12,30 +12,23 @@ import {
   getAdminUsers,
   createAdminUser,
   updateAdminUser,
-  deleteAdminUser,     // used as "block" (soft-block) per backend
-  unblockAdminUser,    // used to unblock
+  deleteAdminUser,
+  unblockAdminUser,
 } from "../../service/api.admin.service.jsx";
 
-/**
- * Build absolute URL for image paths returned by backend.
- * - If path is absolute (http/https) -> return as-is
- * - If VITE_API_URL provided and contains '/api', we prefer origin (strip trailing /api)
- * - Otherwise prefix base + path
- */
 const getFullUrl = (path) => {
   if (!path) return null;
   if (/^https?:\/\//i.test(path)) return path;
-
-  const raw = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, ""); // strip trailing slash(es)
+  const raw = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
   if (!raw) return path;
-
-  // If VITE_API_URL contains '/api' at the end, use origin (strip /api)
   const origin = raw.replace(/\/api\/?$/, "");
-  // ensure path begins with '/'
   const p = path.startsWith("/") ? path : `/${path}`;
   return `${origin}${p}`;
 };
 
+/* =========================
+   CSV / Utility buttons — use gentle, pleasant palette
+   ========================= */
 const ExportCSVButton = ({ rows }) => {
   const handleExport = () => {
     if (!rows || rows.length === 0) {
@@ -71,7 +64,7 @@ const ExportCSVButton = ({ rows }) => {
   return (
     <button
       onClick={handleExport}
-      className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transform transition-all duration-200"
+      className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-semibold shadow-sm bg-gradient-to-r from-emerald-500 to-green-500 text-white hover:opacity-95 transition"
       title="Xuất CSV"
     >
       <ArrowDownTrayIcon className="w-5 h-5" />
@@ -80,31 +73,28 @@ const ExportCSVButton = ({ rows }) => {
   );
 };
 
+/* =========================
+   Component
+   ========================= */
 const AdminUserList = () => {
-  // data
   const [items, setItems] = useState([]);
   const [meta, setMeta] = useState({ total: 0, page: 1, size: 10, totalPages: 1 });
 
-  // loading
   const [loading, setLoading] = useState(false);
   const [crudLoading, setCrudLoading] = useState(false);
 
-  // filters + pagination (local state)
   const [q, setQ] = useState("");
   const [role, setRole] = useState("");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [page, setPage] = useState(1);
-  const size = 10; // page size local default
+  const size = 10;
 
-  // modal form
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ email: "", fullName: "", phone: "", role: "USER" });
 
-  // Normalize response payload to array + meta safely
   const normalizeResponse = (res, fallbackPage = 1, fallbackSize = size) => {
-    // res may be axios response -> res.data -> { status,message,data:{items,meta} }
     const payload = res?.data?.data ?? res?.data ?? res;
     const itemsFromServer = payload?.items ?? payload?.users ?? [];
     const metaFromServer = payload?.meta ?? payload?.pagination ?? {};
@@ -120,17 +110,14 @@ const AdminUserList = () => {
     };
   };
 
-  // fetchList: use opts.page if provided, otherwise use state `page`
   const fetchList = async (opts = {}) => {
     setLoading(true);
     try {
       const requestedPage = opts?.page ?? page;
-      // ensure we pass the final page and size explicitly
       const res = await getAdminUsers({ q, role, start, end, page: requestedPage, size, ...opts });
       const { items: newItems, meta: newMeta } = normalizeResponse(res, requestedPage, size);
       setItems(newItems);
       setMeta(newMeta);
-      // sync local page if backend returned page different
       if (newMeta?.page && newMeta.page !== page) setPage(newMeta.page);
     } catch (err) {
       console.error("fetch users err", err);
@@ -140,13 +127,11 @@ const AdminUserList = () => {
     }
   };
 
-  // fetch when page changes
   useEffect(() => {
     fetchList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
-  // handlers
   const onSearch = (e) => {
     if (e && e.preventDefault) e.preventDefault();
     setPage(1);
@@ -191,7 +176,6 @@ const AdminUserList = () => {
         toast.success("Tạo người dùng thành công");
       }
       setShowForm(false);
-      // refresh current page (go to first page after create)
       fetchList({ page: 1 });
       setPage(1);
     } catch (err) {
@@ -202,10 +186,6 @@ const AdminUserList = () => {
     }
   };
 
-  /**
-   * toggleBlock: nếu user.blocked === true => gọi unblockAdminUser
-   *             nếu user.blocked === false => gọi deleteAdminUser (backend xử lý soft-block)
-   */
   const toggleBlock = async (user) => {
     if (!user || !user.id) return;
     const isBlocked = !!user.blocked;
@@ -218,10 +198,9 @@ const AdminUserList = () => {
         await unblockAdminUser(user.id);
         toast.success("Mở khóa thành công");
       } else {
-        await deleteAdminUser(user.id); // backend performs soft-block
+        await deleteAdminUser(user.id);
         toast.success("Khóa tài khoản thành công");
       }
-      // refresh list - keep on same page where possible
       fetchList();
     } catch (err) {
       console.error("toggleBlock err", err);
@@ -231,7 +210,6 @@ const AdminUserList = () => {
     }
   };
 
-  // pagination helpers - compute BEFORE render usage
   const currentPage = meta?.page ?? page ?? 1;
   const currentSize = meta?.size ?? size;
   const totalPages = meta?.totalPages ?? Math.max(1, Math.ceil((meta?.total ?? items.length) / currentSize));
@@ -239,36 +217,37 @@ const AdminUserList = () => {
   const goNext = () => setPage((p) => Math.min(totalPages, p + 1));
 
   return (
-    <div className="space-y-6 p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-      {/* Header with gradient */}
-      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl shadow-xl p-8 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold mb-2">Quản lý người dùng</h2>
-            <p className="text-indigo-100 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
-              Tìm kiếm, quản lý và phân quyền người dùng
-            </p>
-          </div>
+    <div className="space-y-6 p-6 bg-neutral-50 min-h-screen">
+      {/* Header */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900">Quản lý người dùng</h2>
+          <p className="text-sm text-gray-500 mt-1">Tìm kiếm, quản lý và phân quyền người dùng</p>
+        </div>
 
-          <div className="flex items-center gap-3">
-            <ExportCSVButton rows={items} />
-          </div>
+        <div className="flex items-center gap-3">
+          <ExportCSVButton rows={items} />
+          <button
+            onClick={openCreate}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium shadow-sm hover:bg-indigo-700 transition"
+          >
+            Tạo mới
+          </button>
         </div>
       </div>
 
-      {/* Controls with modern design */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+      {/* Controls */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1">
-            <div className="relative group">
-              <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
+            <div className="relative">
+              <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && onSearch(e)}
                 placeholder="Tìm kiếm email, tên, số điện thoại..."
-                className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none"
+                className="w-full pl-12 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-100 outline-none text-gray-700"
               />
             </div>
           </div>
@@ -277,7 +256,7 @@ const AdminUserList = () => {
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none"
+              className="border border-gray-200 rounded-lg px-3 py-2 text-gray-700"
             >
               <option value="">Tất cả vai trò</option>
               <option value="USER">USER</option>
@@ -288,14 +267,14 @@ const AdminUserList = () => {
               type="date"
               value={start}
               onChange={(e) => setStart(e.target.value)}
-              className="border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none"
+              className="border border-gray-200 rounded-lg px-3 py-2 text-gray-700"
             />
 
             <input
               type="date"
               value={end}
               onChange={(e) => setEnd(e.target.value)}
-              className="border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none"
+              className="border border-gray-200 rounded-lg px-3 py-2 text-gray-700"
             />
           </div>
         </div>
@@ -303,21 +282,21 @@ const AdminUserList = () => {
         <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100">
           <button
             onClick={applyFilter}
-            className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 hover:shadow-lg transform hover:scale-105 transition-all disabled:opacity-50"
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
             disabled={loading}
           >
-            ✓ Áp dụng
+            Áp dụng
           </button>
           <button
             onClick={clearFilter}
-            className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 hover:shadow-md transform hover:scale-105 transition-all disabled:opacity-50"
+            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
             disabled={loading}
           >
-            ↻ Đặt lại
+            Đặt lại
           </button>
           <button
             onClick={onSearch}
-            className="px-5 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium hover:shadow-lg transform hover:scale-105 transition-all disabled:opacity-50"
+            className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition"
             disabled={loading}
           >
             Tìm kiếm
@@ -326,125 +305,107 @@ const AdminUserList = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full">
+          <table className="min-w-full text-sm">
             <thead>
-              <tr className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">#</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Người dùng</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Email</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">SĐT</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Vai trò</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Trạng thái</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Ngày tạo</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Hành động</th>
+              <tr className="bg-gray-50 border-b">
+                <th className="px-5 py-3 text-left text-gray-600 uppercase tracking-wide">#</th>
+                <th className="px-5 py-3 text-left text-gray-600 uppercase tracking-wide">Người dùng</th>
+                <th className="px-5 py-3 text-left text-gray-600 uppercase tracking-wide">Email</th>
+                <th className="px-5 py-3 text-left text-gray-600 uppercase tracking-wide">SĐT</th>
+                <th className="px-5 py-3 text-left text-gray-600 uppercase tracking-wide">Vai trò</th>
+                <th className="px-5 py-3 text-left text-gray-600 uppercase tracking-wide">Trạng thái</th>
+                <th className="px-5 py-3 text-left text-gray-600 uppercase tracking-wide">Ngày tạo</th>
+                <th className="px-5 py-3 text-left text-gray-600 uppercase tracking-wide">Hành động</th>
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y">
               {loading ? (
                 <tr>
-                  <td colSpan="8" className="p-12 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                      <p className="text-gray-500 font-medium">Đang tải dữ liệu...</p>
-                    </div>
-                  </td>
+                  <td colSpan="8" className="p-8 text-center text-gray-500">Đang tải dữ liệu...</td>
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="p-12 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-gray-600 font-medium">Không tìm thấy người dùng</p>
-                        <p className="text-sm text-gray-400 mt-1">Thử thay đổi bộ lọc hoặc tạo người dùng mới</p>
-                      </div>
-                    </div>
-                  </td>
+                  <td colSpan="8" className="p-8 text-center text-gray-500">Không tìm thấy người dùng</td>
                 </tr>
               ) : (
                 items.map((u, idx) => (
-                  <tr
-                    key={u.id}
-                    className={`transition-all duration-200 ${u.blocked ? "bg-red-50/40" : "hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50"}`}
-                  >
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                      <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center text-white font-bold text-xs shadow-md">
+                  <tr key={u.id} className={`${u.blocked ? "bg-rose-50" : "hover:bg-gray-50"} transition`}>
+                    <td className="px-5 py-4">
+                      <div className="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center text-gray-700 font-medium">
                         {(currentPage - 1) * currentSize + idx + 1}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
-                        <div className="relative">
-                          <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-purple-400 rounded-xl flex items-center justify-center overflow-hidden shadow-md ring-2 ring-white">
-                            {u.avatar ? (
-                              <img src={getFullUrl(u.avatar)} alt={u.fullName} className="w-full h-full object-cover" />
-                            ) : (
-                              <UserCircleIcon className="w-7 h-7 text-white" />
-                            )}
-                          </div>
+
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-md bg-gray-50 flex items-center justify-center overflow-hidden">
+                          {u.avatar ? (
+                            <img src={getFullUrl(u.avatar)} alt={u.fullName} className="w-full h-full object-cover" />
+                          ) : (
+                            <UserCircleIcon className="w-6 h-6 text-gray-400" />
+                          )}
                         </div>
                         <div>
-                          <div className={`text-sm font-semibold ${u.blocked ? "line-through text-gray-500" : "text-gray-900"}`}>{u.fullName || "—"}</div>
-                          <div className="text-xs text-gray-500 flex items-center gap-1">{u.email}</div>
+                          <div className={`font-medium ${u.blocked ? "text-gray-400 line-through" : "text-gray-900"}`}>{u.fullName || "—"}</div>
+                          <div className="text-xs text-gray-500">{u.email}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{u.email}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {u.phone ? <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-lg text-xs font-medium">{u.phone}</span> : <span className="text-gray-400">—</span>}
+
+                    <td className="px-5 py-4 text-gray-700">{u.email}</td>
+
+                    <td className="px-5 py-4">
+                      {u.phone ? <div className="text-gray-700">{u.phone}</div> : <div className="text-gray-400">—</div>}
                     </td>
-                    <td className="px-6 py-4 text-sm">
+
+                    <td className="px-5 py-4">
                       {u.role === "ADMIN" ? (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full text-xs font-bold shadow-md">ADMIN</span>
+                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 text-xs font-semibold">ADMIN</span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full text-xs font-bold shadow-md">USER</span>
+                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-gray-50 text-gray-700 text-xs font-semibold">USER</span>
                       )}
                     </td>
 
-                    <td className="px-6 py-4 text-sm">
+                    <td className="px-5 py-4">
                       {u.blocked ? (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">Bị khóa</span>
+                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-rose-100 text-rose-700 text-xs font-medium">Bị khóa</span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Hoạt động</span>
+                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-emerald-100 text-emerald-700 text-xs font-medium">Hoạt động</span>
                       )}
                     </td>
 
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-5 py-4 text-gray-600">
                       {u.createdAt ? (
-                        <div className="flex flex-col">
-                          <span className="font-medium">{new Date(u.createdAt).toLocaleDateString("vi-VN")}</span>
-                          <span className="text-xs text-gray-400">{new Date(u.createdAt).toLocaleTimeString("vi-VN")}</span>
+                        <div className="text-xs">
+                          <div className="font-medium">{new Date(u.createdAt).toLocaleDateString("vi-VN")}</div>
+                          <div className="text-gray-400">{new Date(u.createdAt).toLocaleTimeString("vi-VN")}</div>
                         </div>
                       ) : (
                         "—"
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm">
-                      <div className="flex gap-2">
+
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-2">
                         <button
                           onClick={() => openEdit(u)}
-                          className="group px-3 py-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-1"
+                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-100 text-gray-800 rounded-md hover:bg-indigo-50 transition"
                           disabled={crudLoading}
                         >
-                          <PencilIcon className="w-4 h-4" />
-                          Sửa
+                          <PencilIcon className="w-4 h-4 text-indigo-600" />
+                          <span className="text-sm">Sửa</span>
                         </button>
 
                         <button
                           onClick={() => toggleBlock(u)}
-                          className={`group px-3 py-2 rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-1 ${u.blocked ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
-                            }`}
+                          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm ${u.blocked ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-rose-600 text-white hover:bg-rose-700"} transition`}
                           disabled={crudLoading}
                         >
                           <TrashIcon className="w-4 h-4" />
-                          {u.blocked ? "Mở khóa" : "Khóa"}
+                          <span>{u.blocked ? "Mở khóa" : "Khóa"}</span>
                         </button>
                       </div>
                     </td>
@@ -457,71 +418,63 @@ const AdminUserList = () => {
       </div>
 
       {/* Pagination */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 px-6 py-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-gray-600">Hiển thị</span>
-            <span className="px-3 py-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg font-bold">{items.length}</span>
-            <span className="text-gray-600">trong tổng số</span>
-            <span className="px-3 py-1 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg font-bold">{meta.total}</span>
-            <span className="text-gray-600">người dùng</span>
-          </div>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <span>Hiển thị</span>
+          <span className="px-3 py-1 bg-gray-50 rounded-md font-semibold text-gray-900">{items.length}</span>
+          <span>trong tổng số</span>
+          <span className="px-3 py-1 bg-gray-50 rounded-md font-semibold text-gray-900">{meta.total}</span>
+          <span>người dùng</span>
+        </div>
 
-          <div className="flex items-center gap-3">
-            <button onClick={goPrev} disabled={page <= 1 || loading} className="px-4 py-2 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-xl font-medium disabled:opacity-40">Trước</button>
-            <div className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold shadow-lg">
-              <span className="text-lg">{currentPage}</span>
-              <span className="mx-2 opacity-75">/</span>
-              <span className="text-lg">{totalPages}</span>
-            </div>
-            <button onClick={goNext} disabled={page >= totalPages || loading} className="px-4 py-2 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-xl font-medium disabled:opacity-40">Sau</button>
-          </div>
+        <div className="flex items-center gap-3">
+          <button onClick={goPrev} disabled={page <= 1 || loading} className="px-3 py-1 rounded-md bg-white border border-gray-100 hover:bg-indigo-50 transition">Trước</button>
+          <div className="px-4 py-1 bg-indigo-600 text-white rounded-md font-semibold">{currentPage} / {totalPages}</div>
+          <button onClick={goNext} disabled={page >= totalPages || loading} className="px-3 py-1 rounded-md bg-white border border-gray-100 hover:bg-indigo-50 transition">Sau</button>
         </div>
       </div>
 
       {/* Modal form */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl">
-            <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-t-3xl px-8 py-6 text-white flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <div>
-                <h3 className="text-2xl font-bold">{editing ? " Chỉnh sửa người dùng" : "Tạo người dùng mới"}</h3>
-                <p className="text-sm text-indigo-100 mt-1">{editing ? "Cập nhật thông tin người dùng" : "Thêm người dùng vào hệ thống"}</p>
+                <h3 className="text-lg font-semibold text-gray-900">{editing ? "Chỉnh sửa người dùng" : "Tạo người dùng mới"}</h3>
+                <p className="text-sm text-gray-500">{editing ? "Cập nhật thông tin người dùng" : "Thêm người dùng vào hệ thống"}</p>
               </div>
-              <button onClick={() => setShowForm(false)} className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-xl flex items-center justify-center">
-                ✕
-              </button>
+              <button onClick={() => setShowForm(false)} className="px-3 py-2 rounded-md bg-gray-100 hover:bg-gray-200">✕</button>
             </div>
 
-            <form onSubmit={submitForm} className="p-8 space-y-6">
+            <form onSubmit={submitForm} className="p-6 space-y-4">
               <div>
-                <label className="text-sm font-semibold">Email *</label>
-                <input type="email" required value={form.email} onChange={(e) => setForm((s) => ({ ...s, email: e.target.value }))} className="w-full border-2 border-gray-200 rounded-xl px-4 py-3" />
+                <label className="text-sm font-medium text-gray-700">Email *</label>
+                <input type="email" required value={form.email} onChange={(e) => setForm((s) => ({ ...s, email: e.target.value }))} className="w-full border border-gray-200 rounded-md px-3 py-2" />
               </div>
 
               <div>
-                <label className="text-sm font-semibold">Họ và tên</label>
-                <input value={form.fullName} onChange={(e) => setForm((s) => ({ ...s, fullName: e.target.value }))} className="w-full border-2 border-gray-200 rounded-xl px-4 py-3" />
+                <label className="text-sm font-medium text-gray-700">Họ và tên</label>
+                <input value={form.fullName} onChange={(e) => setForm((s) => ({ ...s, fullName: e.target.value }))} className="w-full border border-gray-200 rounded-md px-3 py-2" />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-semibold">SĐT</label>
-                  <input value={form.phone} onChange={(e) => setForm((s) => ({ ...s, phone: e.target.value }))} className="w-full border-2 border-gray-200 rounded-xl px-4 py-3" />
+                  <label className="text-sm font-medium text-gray-700">SĐT</label>
+                  <input value={form.phone} onChange={(e) => setForm((s) => ({ ...s, phone: e.target.value }))} className="w-full border border-gray-200 rounded-md px-3 py-2" />
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold">Vai trò</label>
-                  <select value={form.role} onChange={(e) => setForm((s) => ({ ...s, role: e.target.value }))} className="w-full border-2 border-gray-200 rounded-xl px-4 py-3">
+                  <label className="text-sm font-medium text-gray-700">Vai trò</label>
+                  <select value={form.role} onChange={(e) => setForm((s) => ({ ...s, role: e.target.value }))} className="w-full border border-gray-200 rounded-md px-3 py-2">
                     <option value="USER">USER</option>
                     <option value="ADMIN">ADMIN</option>
                   </select>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
-                <button type="button" onClick={() => setShowForm(false)} className="px-6 py-3 bg-gray-100 rounded-xl">Hủy</button>
-                <button type="submit" disabled={crudLoading} className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-pink-600 text-white rounded-xl">
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 bg-gray-100 rounded-md">Hủy</button>
+                <button type="submit" disabled={crudLoading} className="px-4 py-2 bg-indigo-600 text-white rounded-md">
                   {crudLoading ? "Đang xử lý..." : (editing ? "Lưu thay đổi" : "Tạo người dùng")}
                 </button>
               </div>

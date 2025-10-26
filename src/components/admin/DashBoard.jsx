@@ -358,7 +358,7 @@ const DashboardPage = () => {
                 </div>
 
                 {/* Recent Activity */}
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                {/* <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                     <h3 className="text-lg font-semibold text-gray-900 mb-6">Hoạt động gần đây</h3>
                     <div className="space-y-4">
                         {recentActivity.map((activity) => (
@@ -396,7 +396,7 @@ const DashboardPage = () => {
                     <button className="w-full mt-4 text-sm text-indigo-600 hover:text-indigo-800 font-medium">
                         Xem tất cả hoạt động
                     </button>
-                </div>
+                </div> */}
             </div>
 
             {/* Quick Actions */}

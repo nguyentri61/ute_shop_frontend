@@ -3,15 +3,17 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ProductDetail } from "../service/api.product.service";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination } from "swiper/modules";
+import { Navigation, Pagination, Thumbs } from "swiper/modules";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart, fetchCart } from "../features/order/cartSlice";
 import { fetchSimilarProducts } from "../features/products/similarProductsSlice";
 import { addToRecentlyViewed } from "../features/products/recentlyViewedSlice";
 import FavoriteButton from "../components/FavoriteButton";
 import ProductSection from "../components/ProductSection";
+import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import "swiper/css/thumbs";
 import toast from "react-hot-toast";
 
 export default function ProductDetailPage() {
@@ -21,17 +23,21 @@ export default function ProductDetailPage() {
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [thumbsSwiper, setThumbsSwiper] = useState(null);
 
   useEffect(() => {
     if (!id) return;
     const fetchProduct = async () => {
       try {
         const res = await ProductDetail(id);
-        setProduct(res.data);
+        // depending on your API wrapper, res.data may be the product or wrapped
+        const p = res?.data ?? res;
+        setProduct(p);
 
-        if (res.data.variants && res.data.variants.length > 0) {
-          setSelectedVariant(res.data.variants[0]);
-          setSelectedColor(res.data.variants[0].color);
+        const vars = p?.variants ?? [];
+        if (Array.isArray(vars) && vars.length > 0) {
+          setSelectedVariant(vars[0]);
+          setSelectedColor(vars[0].color ?? null);
         }
 
         dispatch(addToRecentlyViewed(id));
@@ -52,18 +58,35 @@ export default function ProductDetailPage() {
       </div>
     );
 
-  const { name, description, category, images, variants } = product;
-  const { price, discountPrice, stock } = selectedVariant;
+  // normalize images array (support both productImage or images)
+  const rawImages = product.productImage ?? product.images ?? [];
+  // rawImages may be array of {id, url} or strings
+  const images = Array.isArray(rawImages)
+    ? rawImages
+      .map((it) => {
+        if (!it) return null;
+        if (typeof it === "string") return { id: it, url: it };
+        // if object, try url field
+        return { id: it.id ?? it.url ?? JSON.stringify(it), url: it.url ?? it.path ?? "" };
+      })
+      .filter((i) => i && i.url)
+    : [];
 
-  // Danh sách màu duy nhất
-  const uniqueColors = [...new Set(variants.map((v) => v.color))];
-  const sizesByColor = variants.filter((v) => v.color === selectedColor);
+  const { name, description, category, variants = [] } = product;
+  const price = selectedVariant?.price ?? 0;
+  const discountPrice = selectedVariant?.discountPrice ?? null;
+  const stock = selectedVariant?.stock ?? 0;
+
+  // Danh sách màu duy nhất (filter out falsy)
+  const uniqueColors = [...new Set((variants || []).map((v) => v.color).filter(Boolean))];
+  // sizes for currently selected color
+  const sizesByColor = (variants || []).filter((v) => v.color === selectedColor);
 
   const handleIncrease = () => {
-    if (quantity < stock) setQuantity(quantity + 1);
+    if (quantity < stock) setQuantity((q) => q + 1);
   };
   const handleDecrease = () => {
-    if (quantity > 1) setQuantity(quantity - 1);
+    if (quantity > 1) setQuantity((q) => q - 1);
   };
   const handleAddToCart = () => {
     if (stock <= 0) {
@@ -82,17 +105,29 @@ export default function ProductDetailPage() {
       });
   };
 
+  /* ---------- helpers ---------- */
+  const getFullUrl = (path) => {
+    if (!path) return null;
+    if (/^https?:\/\//i.test(path)) return path;
+    const raw = (import.meta.env.VITE_IMG_URL || "").replace(/\/+$/, "");
+    if (!raw) return path;
+    const origin = raw.replace(/\/api\/?$/, "");
+    const p = path.startsWith("/") ? path : `/${path}`;
+    return `${origin}${p}`;
+  };
+
   const isOutOfStock = stock <= 0;
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-indigo-50 to-white py-6 px-2 sm:px-6">
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Swiper hình ảnh */}
-        <div className="bg-white rounded-3xl shadow-xl p-4 sm:p-8 flex items-center justify-center">
+        {/* Swiper hình ảnh - lớn */}
+        <div className="bg-white rounded-3xl shadow-xl p-4 sm:p-8 flex flex-col items-center justify-center gap-4">
           <Swiper
-            modules={[Navigation, Pagination]}
+            modules={[Navigation, Pagination, Thumbs]}
             navigation
             pagination={{ clickable: true }}
+            thumbs={{ swiper: thumbsSwiper }}
             spaceBetween={10}
             slidesPerView={1}
             className="w-full h-[320px] sm:h-[420px] md:h-[500px] rounded-2xl overflow-hidden"
@@ -101,7 +136,7 @@ export default function ProductDetailPage() {
               images.map((img) => (
                 <SwiperSlide key={img.id}>
                   <img
-                    src={img.url}
+                    src={getFullUrl(img.url)}
                     alt={name}
                     className="w-full h-full object-contain rounded-2xl transition-transform duration-300 hover:scale-105 bg-gradient-to-br from-indigo-100 to-white"
                   />
@@ -115,6 +150,32 @@ export default function ProductDetailPage() {
               </SwiperSlide>
             )}
           </Swiper>
+
+          {/* thumbnail swiper (nếu có >1 ảnh) */}
+          {images && images.length > 1 && (
+            <div className="w-full max-w-xl">
+              <Swiper
+                onSwiper={setThumbsSwiper}
+                modules={[Thumbs, Navigation]}
+                spaceBetween={8}
+                slidesPerView={Math.min(6, images.length)}
+                watchSlidesProgress
+                className="h-20 mt-2"
+              >
+                {images.map((img) => (
+                  <SwiperSlide key={"thumb-" + img.id} className="h-20">
+                    <div className="w-full h-full p-1 rounded-md border border-gray-100 bg-white flex items-center justify-center">
+                      <img
+                        src={getFullUrl(img.url)}
+                        alt={`thumb-${img.id}`}
+                        className="w-full h-full object-cover rounded-md"
+                      />
+                    </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+          )}
         </div>
 
         {/* Thông tin sản phẩm */}
@@ -133,14 +194,14 @@ export default function ProductDetailPage() {
           <div className="flex items-center gap-4 mb-4">
             <p className="text-gray-600 text-sm sm:text-base">
               <span className="font-medium text-indigo-700">
-                {product.reviewCount}
+                {product.reviewCount ?? 0}
               </span>{" "}
               lượt đánh giá
             </p>
             <p className="text-gray-600 text-sm sm:text-base">
               Đã bán:{" "}
               <span className="font-medium text-indigo-700">
-                {product.totalSold}
+                {product.totalSold ?? 0}
               </span>
             </p>
           </div>
@@ -161,12 +222,13 @@ export default function ProductDetailPage() {
                     key={c}
                     onClick={() => {
                       setSelectedColor(c);
-                      const firstSize = variants.find((v) => v.color === c);
-                      setSelectedVariant(firstSize);
+                      // pick first variant with this color
+                      const firstSize = (variants || []).find((v) => v.color === c);
+                      if (firstSize) setSelectedVariant(firstSize);
                     }}
                     className={`px-3 py-1 rounded-lg border ${selectedColor === c
-                        ? "bg-indigo-600 text-white border-indigo-600"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      ? "bg-indigo-600 text-white border-indigo-600"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                   >
                     {c}
@@ -187,9 +249,9 @@ export default function ProductDetailPage() {
                   <button
                     key={v.id + "-size"}
                     onClick={() => setSelectedVariant(v)}
-                    className={`px-3 py-1 rounded-lg border ${selectedVariant.id === v.id
-                        ? "bg-indigo-600 text-white border-indigo-600"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    className={`px-3 py-1 rounded-lg border ${selectedVariant?.id === v.id
+                      ? "bg-indigo-600 text-white border-indigo-600"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                   >
                     {v.size}
@@ -204,15 +266,15 @@ export default function ProductDetailPage() {
             {discountPrice ? (
               <>
                 <span className="line-through text-gray-400 text-lg sm:text-xl">
-                  {price.toLocaleString("vi-VN")}₫
+                  {Number(price).toLocaleString("vi-VN")}₫
                 </span>
                 <span className="text-indigo-600 text-2xl sm:text-3xl font-bold drop-shadow">
-                  {discountPrice.toLocaleString("vi-VN")}₫
+                  {Number(discountPrice).toLocaleString("vi-VN")}₫
                 </span>
               </>
             ) : (
               <span className="text-indigo-600 text-2xl sm:text-3xl font-bold drop-shadow">
-                {price.toLocaleString("vi-VN")}₫
+                {Number(price).toLocaleString("vi-VN")}₫
               </span>
             )}
           </div>
@@ -278,7 +340,7 @@ export default function ProductDetailPage() {
 // Component sản phẩm tương tự
 function SimilarProducts({ productId }) {
   const dispatch = useDispatch();
-  const { products, loading } = useSelector((state) => state.similarProducts);
+  const { products = [], loading } = useSelector((state) => state.similarProducts ?? { products: [], loading: false });
 
   useEffect(() => {
     if (productId) {
@@ -286,7 +348,7 @@ function SimilarProducts({ productId }) {
     }
   }, [productId, dispatch]);
 
-  if (loading || products.length === 0) return null;
+  if (loading || !products || products.length === 0) return null;
 
   return <ProductSection title="Sản phẩm tương tự" products={products} />;
 }

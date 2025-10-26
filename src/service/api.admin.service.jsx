@@ -54,15 +54,16 @@ const getAdminCategoryById = (id) => {
   const API = `/admin/categories/${id}`;
   return axios.get(API);
 };
-
 const createAdminCategory = (payload) => {
-  const API = "/admin/categories";
-  return axios.post(API, payload);
+  // if payload is FormData -> post directly
+  if (payload instanceof FormData) return axios.post("/admin/categories", payload);
+  // else send JSON
+  return axios.post("/admin/categories", payload);
 };
 
 const updateAdminCategory = (id, payload) => {
-  const API = `/admin/categories/${id}`;
-  return axios.patch(API, payload);
+  if (payload instanceof FormData) return axios.patch(`/admin/categories/${id}`, payload);
+  return axios.patch(`/admin/categories/${id}`, payload);
 };
 
 const deleteAdminCategory = (id) => {
