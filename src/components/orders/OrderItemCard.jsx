@@ -7,7 +7,15 @@ export default function OrderItemCard({ product, quantity, canReview }) {
   const price = product?.discountPrice ?? product?.price ?? 0;
   const subtotal = price * (Number(quantity) || 0);
   const [isOpen, setIsOpen] = useState(false);
-
+  const getFullUrl = (path) => {
+    if (!path) return null;
+    if (/^https?:\/\//i.test(path)) return path;
+    const raw = (import.meta.env.VITE_IMG_URL || "").replace(/\/+$/, "");
+    if (!raw) return path;
+    const origin = raw.replace(/\/api\/?$/, "");
+    const p = path.startsWith("/") ? path : `/${path}`;
+    return `${origin}${p}`;
+  };
   const handleSubmitReview = async (review) => {
     try {
       await CreateReview(product.id, review);
@@ -23,7 +31,7 @@ export default function OrderItemCard({ product, quantity, canReview }) {
       {/* Left: image + info */}
       <div className="flex gap-3 items-center">
         <img
-          src={product?.image || "/placeholder-product.png"}
+          src={getFullUrl(product?.image) || "/placeholder-product.png"}
           alt={product?.name}
           className="w-16 h-16 object-cover rounded-lg border border-gray-200"
           onError={(e) => { e.currentTarget.src = "/placeholder-product.png"; }}
