@@ -22,7 +22,7 @@ export default function Category({ categories = [], currentCategoryId }) {
               ${isActive ? "bg-indigo-100 ring-2 ring-indigo-500" : "bg-white"}`}
                         >
                             <img
-                                src={`http://localhost:5000/public/icons/${cat.icon}`}
+                                src={`http://localhost:5000/public${cat.icon}`}
                                 alt={cat.name}
                                 className="w-12 h-12 mb-3"
                             />
