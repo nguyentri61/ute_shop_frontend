@@ -136,7 +136,9 @@ const AdminChatList = ({ onSelectConversation, selectedConversation }) => {
           filtered.map((c) => {
             const userName = c.user?.fullName || c.user?.email || "Người dùng";
             const firstLetter = userName[0]?.toUpperCase() || "U";
+
             const lastMsg = c.firstMessage?.content || "Chưa có tin nhắn";
+
             const unread = c.unreadCount || 0;
             const isActive = selectedConversation?.id === c.id;
 
@@ -177,7 +179,11 @@ const AdminChatList = ({ onSelectConversation, selectedConversation }) => {
                         : "text-gray-500"
                     }`}
                   >
-                    {lastMsg}
+                    {c.firstMessage.type === "TEXT"
+                      ? lastMsg
+                      : c.firstMessage.type === "IMAGE"
+                      ? "Đã gửi 1 ảnh"
+                      : "Đã gửi 1 video"}
                   </p>
                 </div>
 

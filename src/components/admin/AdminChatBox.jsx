@@ -118,8 +118,17 @@ export default function AdminChatBox({ conversation }) {
     try {
       const fd = new FormData();
       fd.append("conversationId", conversation.id);
-      fd.append("content", input.trim());
-      if (file) fd.append("media", file);
+
+      if (file) {
+        const type = file.type.startsWith("video") ? "VIDEO" : "IMAGE";
+        fd.append("type", type);
+        // dùng message làm caption nếu có
+        fd.append("content", input.trim());
+        fd.append("media", file);
+      } else {
+        fd.append("type", "TEXT");
+        fd.append("content", input.trim());
+      }
 
       const res = await sendMessage(fd);
       const data = res?.data?.data || res?.data;
